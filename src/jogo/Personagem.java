@@ -9,8 +9,8 @@ public class Personagem {
     private int x;
     private int y;
 
-    private int velocidade = 18;
-    private int largura = 96;
+    private int velocidade = 24;
+    private int largura = 400;
 
     private boolean olhandoDireita = true;
 
@@ -73,7 +73,9 @@ public class Personagem {
     // Movimenta para a direita
     public void moverDireita(int larguraPainel) {
 
-        x = Math.min(x + velocidade, larguraPainel - largura);
+        int limite = Math.max(0, larguraPainel - largura);
+
+        x = Math.min(x + velocidade, limite);
 
         olhandoDireita = true;
 
@@ -123,7 +125,22 @@ public class Personagem {
         return y;
     }
 
+    // Atualiza a posição vertical
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    // Atualiza a largura conforme o tamanho da janela
+    public void setLargura(int largura) {
+        this.largura = largura;
+    }
+
     public int getLargura() {
         return largura;
+    }
+    
+    // Atualiza a posição horizontal da personagem
+    public void setX(int x){
+    	this.x = x;
     }
 }
