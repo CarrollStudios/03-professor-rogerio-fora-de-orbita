@@ -9,15 +9,28 @@ public class TelaJogo extends JFrame {
 	
 	public TelaJogo() {
 		
+		setTitle("Professor Rogério: Fora de Órbita");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setResizable(false);
+		
+		// Primeiro aparece o menu (TelaMenu)
+		add(new TelaMenu(this));
+		
+		pack(); // ajusta a janela ao tamanho do menu (1280 x 720)
+		setLocationRelativeTo(null);
+		setVisible(true);
+	}
+	
+	// Chamado pelo botão JOGAR do menu: troca o menu pelo corredor
+	public void iniciarJogo() {
+		
+		getContentPane().removeAll();
+		
 		painel = new PainelJogo();
 		add(painel);
 		
-		setTitle("Professor Rogério: Fora de Órbita");
-		setSize(800, 600);
-		 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
-		setVisible(true);
+		revalidate();
+		repaint();
 		SwingUtilities.invokeLater( () -> painel.requestFocusInWindow());
 	}
 
