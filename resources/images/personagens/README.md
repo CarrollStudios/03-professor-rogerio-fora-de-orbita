@@ -17,4 +17,5 @@ Sprites em pixel art usados nas cutscenes. Os de frente vêm dos desenhos da Gih
 | `aluna-costas.png` | Aluna de costas (entrando pela porta) |
 | `aluna-lado-parada.png` | Aluna de lado, parada |
 | `aluna-lado-andando1.png` a `aluna-lado-andando6.png` | Aluna de lado andando: os 6 desenhos de um passo completo, com as duas pernas |
+| `aluna-astronauta.png` | Aluna de frente, com capacete de astronauta (flutuando no espaço) |
 | `roger-frente.png` | Professor Roger de frente, com o notebook |

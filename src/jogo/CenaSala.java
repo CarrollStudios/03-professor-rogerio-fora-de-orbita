@@ -5,17 +5,20 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
  * Cutscene da sala de aula (LAB 3), sem ação do jogador.
  * A aluna entra, o Professor Roger se assusta com a porta aberta
- * e manda a aluna para o espaço. Em cada fala, a câmera dá zoom
+ * e manda a aluna para o espaço (a nave vem buscar na CenaDecolagem). Em cada fala, a câmera dá zoom
  * em quem está falando (os personagens não se mexem).
  * Feita por Gih (Front-end) - Carroll Studios.
  */
@@ -39,21 +42,19 @@ public class CenaSala extends JPanel {
     private double alvoZoom = 1.0, alvoX = LARGURA / 2.0, alvoY = ALTURA / 2.0;   // para onde está indo
 
     // ===== Etapas da cena =====
-    private enum Etapa { ALUNA_ENTRANDO, DIALOGO, FLASH, ESCURECENDO }
+    private enum Etapa { ALUNA_ENTRANDO, DIALOGO, FIM }
 
     private Etapa etapa = Etapa.ALUNA_ENTRANDO;   // começa com a aluna já entrando (sem tela preta)
     private int tempoNaEtapa = 0;
 
     // ===== Imagens =====
     private BufferedImage fundo, colegas, roger, alunaFrente;
-    private BufferedImage[] passos = new BufferedImage[6];
+    private Caminhada caminhada = new Caminhada();   // os 6 desenhos de um passo e o som dos passos
     private BufferedImage cena = new BufferedImage(LARGURA, ALTURA, BufferedImage.TYPE_INT_ARGB);
 
     // ===== Estado =====
     private double alunaX = X_PORTA;
     private BufferedImage spriteAluna;
-    private float escuro = 0f;     // 0 = normal, 1 = tela preta
-    private float clarao = 0f;     // o "flash" quando o professor aperta Enter
 
     // ===== Diálogo (roteiro da equipe) =====
     private List<Fala> falas = new ArrayList<>();
@@ -74,10 +75,7 @@ public class CenaSala extends JPanel {
         colegas = Imagens.carregar("/images/sala/sala-frente.png");   // colegas e computadores
         roger = Imagens.carregar("/images/personagens/roger-frente.png");
         alunaFrente = Imagens.carregar("/images/personagens/aluna-frente.png");
-        for (int i = 0; i < passos.length; i++) {
-            passos[i] = Imagens.carregar("/images/personagens/aluna-lado-andando" + (i + 1) + ".png");
-        }
-        spriteAluna = passos[0];
+        spriteAluna = caminhada.primeiroDesenho();
 
         falas.add(new Fala("Professor Roger", "Quem deixou a porta aberta... de novo?"));
         falas.add(new Fala("Aluna", "Foi o vento, professor."));
@@ -85,11 +83,49 @@ public class CenaSala extends JPanel {
         falas.add(new Fala("Aluna", "Pera, como assim?!"));
         falas.add(new Fala("Professor Roger", "Boa viagem!"));
 
+        // botão PULAR: vai direto para a decolagem (para quem já viu a história)
+        setLayout(null);   // eu escolho a posição do botão
+        JButton pular = Botoes.criar("/images/botoes/botao-pular.png", "/images/botoes/botao-pular-hover.png");
+        pular.setLocation(LARGURA - pular.getWidth() - 24, 24);   // canto de cima, à direita
+        pular.addActionListener(e -> {
+            Sons.tocar("/sons/efeitos/clique.wav");
+            relogio.stop();
+            if (janela != null) {
+                janela.mostrarDecolagem();
+            }
+        });
+        add(pular);
+
+        // música da escola (se ela já estiver tocando, continua; no "Ver de novo", ela volta)
+        Sons.tocarMusica("/sons/musicas/musica-escola.wav");
+
+        // clique na tela: a frase aparece inteira; outro clique: vai para a próxima
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                avancarFala();
+            }
+        });
+
         relogio = new Timer(TIQUE, e -> {
             atualizar();
             repaint();
         });
         relogio.start();
+    }
+
+    // Chamado quando o jogador clica na tela
+    private void avancarFala() {
+        if (etapa != Etapa.DIALOGO) {
+            return;
+        }
+        String texto = falas.get(falaAtual).getTexto();
+        if (letrasVisiveis < texto.length()) {
+            letrasVisiveis = texto.length();      // mostra a frase inteira de uma vez
+            tempoNaEtapa = 0;
+        } else {
+            tempoNaEtapa = tempoDeLeitura(texto); // acaba a pausa: no próximo tique vem a próxima fala
+        }
     }
 
     private void irPara(Etapa proxima) {
@@ -122,6 +158,13 @@ public class CenaSala extends JPanel {
         alvoY = ALTURA / 2.0;
     }
 
+    // "Tic" das letrinhas, como nos jogos antigos (uma letra sim, outra não, e sem som no espaço)
+    private void tocarLetra(char letra) {
+        if (letra != ' ' && letrasVisiveis % 2 == 1) {
+            Sons.tocar("/sons/efeitos/fala-letra.wav");
+        }
+    }
+
     void atualizar() {
 
         tempoNaEtapa += TIQUE;
@@ -131,7 +174,7 @@ public class CenaSala extends JPanel {
             case ALUNA_ENTRANDO:
                 // a aluna entra pela porta e anda até a frente da lousa
                 alunaX += 5;
-                spriteAluna = passos[(tempoNaEtapa / 110) % passos.length];
+                spriteAluna = caminhada.desenhoAtual(tempoNaEtapa);
                 if (alunaX >= X_ALUNA) {
                     alunaX = X_ALUNA;
                     spriteAluna = alunaFrente;   // vira de frente
@@ -145,6 +188,7 @@ public class CenaSala extends JPanel {
                 // uma letra nova a cada tique (30 ms)
                 if (letrasVisiveis < texto.length()) {
                     letrasVisiveis++;
+                    tocarLetra(texto.charAt(letrasVisiveis - 1));
                     if (letrasVisiveis == texto.length()) {
                         tempoNaEtapa = 0;   // começa a contar a pausa depois do texto
                     }
@@ -157,23 +201,15 @@ public class CenaSala extends JPanel {
                         mirarCamera(falas.get(falaAtual).getNome());
                     } else {
                         abrirCamera();
-                        irPara(Etapa.FLASH);
+                        irPara(Etapa.FIM);
                     }
                 }
                 break;
 
-            case FLASH:
-                // clarão rápido: o professor apertou Enter no notebook
-                clarao = tempoNaEtapa < 150 ? tempoNaEtapa / 150f : Math.max(0f, 1f - (tempoNaEtapa - 150) / 450f);
-                if (tempoNaEtapa >= 600) {
-                    clarao = 0f;
-                    irPara(Etapa.ESCURECENDO);
-                }
-                break;
-
-            case ESCURECENDO:
-                escuro = Math.min(1f, tempoNaEtapa / 800f);
-                if (escuro >= 1f) {
+            case FIM:
+                // espera a câmera voltar para a sala inteira e chama a decolagem
+                // (a decolagem começa com a mesma sala: parece uma cena só)
+                if (zoom < 1.01) {
                     relogio.stop();
                     if (janela != null) {
                         janela.mostrarDecolagem();   // próxima cena
@@ -252,19 +288,10 @@ public class CenaSala extends JPanel {
             gp.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             gp.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
             Fala fala = falas.get(falaAtual);
-            caixa.desenhar(gp, fala.getNome(), fala.getTexto().substring(0, letrasVisiveis));
+            boolean terminou = letrasVisiveis == fala.getTexto().length();   // frase completa: mostra a setinha ▼
+            caixa.desenhar(gp, fala.getNome(), fala.getTexto().substring(0, letrasVisiveis), terminou);
             gp.dispose();
             g2.drawImage(pequena, 0, 0, LARGURA, ALTURA, null);
-        }
-
-        // 3. clarão e escurecer
-        if (clarao > 0) {
-            g2.setColor(new Color(1f, 1f, 1f, clarao));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-        }
-        if (escuro > 0) {
-            g2.setColor(new Color(0f, 0f, 0f, escuro));
-            g2.fillRect(0, 0, getWidth(), getHeight());
         }
     }
 }

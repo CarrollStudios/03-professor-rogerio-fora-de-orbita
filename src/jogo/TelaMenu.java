@@ -1,16 +1,12 @@
 package jogo;
 
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -73,19 +69,26 @@ public class TelaMenu extends JPanel {
         camadas.add(new Camada(carregarImagem("menu-planeta-anel.png"), 8, 5500, 4.0));
         camadas.add(new Camada(carregarImagem("menu-nave.png"), 12, 1600, 0.0));
 
-        // Botão JOGAR: chama a próxima tela (o corredor da Yasmim)
-        JButton botaoJogar = criarBotao("botao-jogar.png", "botao-jogar-hover.png");
+        // Botão JOGAR: chama a próxima tela (o corredor)
+        JButton botaoJogar = Botoes.criar(PASTA + "botao-jogar.png", PASTA + "botao-jogar-hover.png");
         botaoJogar.setLocation(X_BOTAO, Y_JOGAR);
         botaoJogar.addActionListener(e -> {
+            Sons.tocar("/sons/efeitos/clique.wav");
             relogio.stop();          // para a animação do menu
             janela.iniciarJogo();
         });
         add(botaoJogar);
 
         // Botão SAIR: fecha o jogo
-        JButton botaoSair = criarBotao("botao-sair.png", "botao-sair-hover.png");
+        JButton botaoSair = Botoes.criar(PASTA + "botao-sair.png", PASTA + "botao-sair-hover.png");
         botaoSair.setLocation(X_BOTAO, Y_SAIR);
-        botaoSair.addActionListener(e -> System.exit(0));
+        botaoSair.addActionListener(e -> {
+            Sons.tocar("/sons/efeitos/clique.wav");
+            // espera o clique tocar (0,3 segundo) e fecha o jogo
+            Timer fechar = new Timer(300, f -> System.exit(0));
+            fechar.setRepeats(false);
+            fechar.start();
+        });
         add(botaoSair);
 
         // relógio da animação: a cada tique, avança o tempo e redesenha
@@ -94,23 +97,14 @@ public class TelaMenu extends JPanel {
             repaint();
         });
         relogio.start();
+
+        // música da escola: começa no menu e continua no corredor e na sala
+        Sons.tocarMusica("/sons/musicas/musica-escola.wav");
     }
 
-    // Lê uma imagem da pasta resources/images/menu
+    // Lê uma imagem da pasta resources/images/menu (usando a ajudante Imagens)
     private BufferedImage carregarImagem(String nomeArquivo) {
-
-        try {
-            BufferedImage imagem = ImageIO.read(
-                getClass().getResource(PASTA + nomeArquivo)
-            );
-            System.out.println("Imagem carregada: " + nomeArquivo);
-            return imagem;
-
-        } catch (IOException | IllegalArgumentException e) {
-            System.out.println("Erro ao carregar: " + nomeArquivo);
-            e.printStackTrace();
-            return null;
-        }
+        return Imagens.carregar(PASTA + nomeArquivo);
     }
 
     // Desenha a tela: primeiro o fundo, depois o título por cima
@@ -148,30 +142,5 @@ public class TelaMenu extends JPanel {
         if (titulo != null) {
             g.drawImage(titulo, 0, 0, getWidth(), getHeight(), this);
         }
-    }
-
-    // Cria um botão usando duas imagens:
-    // uma normal e outra para quando o mouse passa por cima (hover)
-    private JButton criarBotao(String imagemNormal, String imagemHover) {
-
-        BufferedImage normal = carregarImagem(imagemNormal);
-        BufferedImage hover = carregarImagem(imagemHover);
-
-        JButton botao = new JButton();
-        if (normal != null) {
-            botao.setIcon(new ImageIcon(normal));
-            botao.setSize(normal.getWidth(), normal.getHeight());
-        }
-        if (hover != null) {
-            botao.setRolloverIcon(new ImageIcon(hover));
-        }
-
-        botao.setContentAreaFilled(false); // não usa o fundo padrão do Java
-        botao.setBorderPainted(false);     // não usa a borda padrão do Java
-        botao.setFocusPainted(false);      // tira o quadradinho de foco
-        botao.setBorder(null);             // sem espaço extra em volta
-        botao.setCursor(new Cursor(Cursor.HAND_CURSOR)); // mãozinha no mouse
-
-        return botao;
     }
 }

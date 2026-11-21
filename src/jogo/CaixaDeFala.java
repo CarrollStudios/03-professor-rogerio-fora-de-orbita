@@ -39,6 +39,11 @@ public class CaixaDeFala {
 
     // g = pincel da tela pequena; nome = quem fala; textoVisivel = o pedaço do texto que já apareceu
     public void desenhar(Graphics2D g, String nome, String textoVisivel) {
+        desenhar(g, nome, textoVisivel, false);
+    }
+
+    // esperandoClique = true: a frase terminou, então aparece a setinha ▼ depois dela
+    public void desenhar(Graphics2D g, String nome, String textoVisivel, boolean esperandoClique) {
 
         // caixa
         g.setColor(FUNDO);
@@ -60,6 +65,7 @@ public class CaixaDeFala {
         g.setColor(TEXTO);
         int linhaY = y + 20;
         FontMetrics mt = g.getFontMetrics();
+        int fimX = X + 10, fimY = linhaY;   // onde a frase termina (para a setinha)
         for (String linha : quebrarEmLinhas(textoVisivel, mt, LARGURA - 20)) {
             // escreve palavra por palavra, com um espaço fixo entre elas
             // (em letras pequenas o espaço normal fica apertado demais)
@@ -68,8 +74,22 @@ public class CaixaDeFala {
                 g.drawString(palavra, x, linhaY);
                 x += mt.stringWidth(palavra) + ESPACO;
             }
+            fimX = x;
+            fimY = linhaY;
             linhaY += 11;
         }
+
+        if (esperandoClique) {
+            desenharSeta(g, fimX, fimY - 6);
+        }
+    }
+
+    // Setinha ▼ logo depois da última palavra: avisa que é só clicar para continuar (como nos jogos)
+    private void desenharSeta(Graphics2D g, int x, int y) {
+        // pulinho suave de 1 pixel (a cada meio segundo), sem piscar
+        int pulo = (System.currentTimeMillis() / 500) % 2 == 0 ? 0 : 1;
+        g.setColor(TEXTO);
+        g.fillPolygon(new int[] { x, x + 8, x + 4 }, new int[] { y + pulo, y + pulo, y + 5 + pulo }, 3);
     }
 
     // Divide o texto em linhas que caibam na largura máxima
