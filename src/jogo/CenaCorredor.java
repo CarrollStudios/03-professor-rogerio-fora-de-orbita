@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -43,7 +44,7 @@ public class CenaCorredor extends JPanel {
     // ===== Imagens =====
     private BufferedImage corredor, portaAberta;
     private BufferedImage parada, costas;
-    private BufferedImage[] passos = new BufferedImage[6];   // os 6 desenhos de um passo completo
+    private Caminhada caminhada = new Caminhada();   // os 6 desenhos de um passo e o som dos passos
 
     // ===== Estado da aluna e da câmera =====
     private double alunaX = 200;    // posição da aluna no corredor (centro dela)
@@ -65,11 +66,21 @@ public class CenaCorredor extends JPanel {
         corredor = Imagens.carregar("/images/corredor/corredor-fundo.png");
         portaAberta = Imagens.carregar("/images/corredor/corredor-porta-aberta.png");
         parada = Imagens.carregar("/images/personagens/aluna-lado-parada.png");
-        for (int i = 0; i < passos.length; i++) {
-            passos[i] = Imagens.carregar("/images/personagens/aluna-lado-andando" + (i + 1) + ".png");
-        }
         costas = Imagens.carregar("/images/personagens/aluna-costas.png");
         spriteAtual = parada;
+
+        // botão PULAR: vai direto para a decolagem (para quem já viu a história)
+        setLayout(null);   // eu escolho a posição do botão
+        JButton pular = Botoes.criar("/images/botoes/botao-pular.png", "/images/botoes/botao-pular-hover.png");
+        pular.setLocation(LARGURA - pular.getWidth() - 24, 24);   // canto de cima, à direita
+        pular.addActionListener(e -> {
+            Sons.tocar("/sons/efeitos/clique.wav");
+            relogio.stop();
+            if (janela != null) {
+                janela.mostrarDecolagem();
+            }
+        });
+        add(pular);
 
         // O Timer é o "relógio" da cena: a cada tique, atualiza e redesenha
         relogio = new Timer(TIQUE, e -> {
@@ -95,7 +106,7 @@ public class CenaCorredor extends JPanel {
             case ANDANDO:
                 alunaX += VELOCIDADE;
                 // troca o desenho do passo a cada 110 milissegundos (6 desenhos = 1 passo completo)
-                spriteAtual = passos[(tempoNaEtapa / 110) % passos.length];
+                spriteAtual = caminhada.desenhoAtual(tempoNaEtapa);
                 if (alunaX >= CENTRO_PORTA) {
                     alunaX = CENTRO_PORTA;
                     spriteAtual = parada;
@@ -106,6 +117,7 @@ public class CenaCorredor extends JPanel {
             case PARADA:
                 if (tempoNaEtapa >= 200) {
                     mostrarPortaAberta = true;   // a porta abre
+                    Sons.tocar("/sons/efeitos/porta.wav");
                     irPara(Etapa.PORTA_ABRINDO);
                 }
                 break;
