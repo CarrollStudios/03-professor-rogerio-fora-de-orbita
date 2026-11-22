@@ -1,8 +1,5 @@
 package jogo;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Image;
 
 import java.util.ArrayList;
@@ -18,7 +15,7 @@ import javax.swing.SwingUtilities;
 /**
  * A janela do jogo (a "televisão").
  * Ela mostra uma cena por vez e sabe trocar de uma cena para a próxima.
- * Ordem: menu -> corredor -> sala -> decolagem -> meteoro -> mapa -> ...
+ * Ordem: menu -> corredor -> sala -> decolagem -> meteoro -> mapa -> fases 1, 2 e 3 -> final
  */
 public class TelaJogo extends JFrame {
 	
@@ -82,8 +79,13 @@ public class TelaJogo extends JFrame {
 	}
 	
 	// Botão JOGAR do menu: começa a cutscene do corredor
+	// (quem já recuperou peças, e fechou o jogo, continua direto pelo mapa)
 	public void iniciarJogo() {
-		trocarCena(new CenaCorredor(this));
+		if (Progresso.getPecas() > 0) {
+			mostrarMapa();
+		} else {
+			trocarCena(new CenaCorredor(this));
+		}
 	}
 	
 	// Fim do corredor: começa a cena da sala
@@ -102,20 +104,24 @@ public class TelaJogo extends JFrame {
 		trocarCena(new CenaMeteoro(this));
 	}
 	
-	// Botão "Continuar": mapa da missão (ainda em construção)
+	// Botão "Continuar" da cutscene do meteoro: tela de entrada das fases (mapa da missão)
 	public void mostrarMapa() {
-		
-		JPanel emConstrucao = new JPanel() {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				g.setColor(new Color(0xE9E4FF));
-				g.setFont(new Font("SansSerif", Font.BOLD, 28));
-				g.drawString("Mapa da missão: em construção", 430, 360);
-			}
-		};
-		emConstrucao.setBackground(new Color(0x0D0B1E));
-		trocarCena(emConstrucao);
+		trocarCena(new CenaMapa(this));
+	}
+	
+	// Uma fase no espaço (0 = fase 1, 1 = fase 2, 2 = fase 3)
+	public void mostrarFase(int fase) {
+		trocarCena(new CenaFase(this, fase));
+	}
+	
+	// Depois de recuperar as 6 peças: a nave é reconstruída e volta para a Terra
+	public void mostrarFinal() {
+		trocarCena(new CenaFinal(this));
+	}
+	
+	// Volta para o menu inicial
+	public void mostrarMenu() {
+		trocarCena(new TelaMenu(this));
 	}
 
 }
