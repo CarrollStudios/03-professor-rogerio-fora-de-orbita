@@ -96,6 +96,83 @@ public class Desenho {
         g.drawImage(img, (int) Math.round(cx - w / 2.0), (int) Math.round(cy - h / 2.0), w, h, null);
     }
 
+    // ===== ET (pixel art feita em código) =====
+
+    // '.' = vazio, o = contorno, g = verde, l = verde claro, e = olho, w = brilho do olho, y = amarelo, m = boca
+    private static final String[] ET_DESENHO = {
+            "..yy........yy..",
+            "..yy........yy..",
+            "...o........o...",
+            "....o......o....",
+            ".....oooooooo...",
+            "...ooggggggggoo.",
+            ".oogglllgggggooo",
+            ".ogggggggggggggo",
+            ".ogeeeeggggeeeeo",
+            ".ogewweggggewweo",
+            ".ogeeeeggggeeeeo",
+            ".ogggeeggggeegoo",
+            ".oggggggggggggo.",
+            "..ooggggmmggoo..",
+            "....ooggggoo....",
+            ".....oggggo.....",
+            "..ooggggggggoo..",
+            "..oggggggggggo..",
+            "...oggggggggo...",
+            "....oggo..oggo..",
+            "....oooo..oooo.." };
+
+    private static BufferedImage etImagem;
+
+    // Desenha o ET com o centro da base em (cx, base). escala = tamanho de cada "pixel" do desenho.
+    public static void alien(Graphics2D g, double cx, double base, int escala) {
+        if (etImagem == null) {
+            int w = ET_DESENHO[0].length(), h = ET_DESENHO.length;
+            etImagem = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < h; y++) {
+                String linha = ET_DESENHO[y];
+                for (int x = 0; x < w && x < linha.length(); x++) {
+                    int cor;
+                    switch (linha.charAt(x)) {
+                        case 'o': case 'm': cor = 0xFF1E5A32; break;
+                        case 'g': cor = 0xFF6EDC6E; break;
+                        case 'l': cor = 0xFFB4F5A8; break;
+                        case 'e': cor = 0xFF10101C; break;
+                        case 'w': cor = 0xFFFFFFFF; break;
+                        case 'y': cor = 0xFFFFE066; break;
+                        default: cor = 0; break;
+                    }
+                    etImagem.setRGB(x, y, cor);
+                }
+            }
+        }
+        int w = etImagem.getWidth() * escala, h = etImagem.getHeight() * escala;
+        g.drawImage(etImagem, (int) Math.round(cx - w / 2.0), (int) Math.round(base - h), w, h, null);
+    }
+
+    // ===== oxigênio =====
+
+    // Os tanques de oxigênio: cheios em azul, vazios apagados. Com pouco oxigênio, piscam em vermelho.
+    public static void oxigenio(Graphics2D g, int x, int y, int quantos, int maximo, int tempoMs) {
+        boolean pouco = quantos <= 1;
+        boolean piscaVermelho = pouco && (tempoMs / 300) % 2 == 0;
+        for (int i = 0; i < maximo; i++) {
+            int tx = x + i * 30;
+            boolean cheio = i < quantos;
+            g.setColor(new Color(10, 12, 30, 230));
+            g.fillRoundRect(tx, y, 24, 38, 10, 10);
+            g.setColor(cheio ? (piscaVermelho ? new Color(255, 110, 110) : new Color(110, 215, 255)) : new Color(90, 96, 130));
+            g.drawRoundRect(tx, y, 24, 38, 10, 10);
+            g.fillRect(tx + 8, y - 5, 8, 5);
+            if (cheio) {
+                g.setColor(piscaVermelho ? new Color(235, 70, 80) : new Color(60, 170, 240));
+                g.fillRoundRect(tx + 4, y + 4, 16, 30, 6, 6);
+                g.setColor(new Color(255, 255, 255, 140));
+                g.fillRect(tx + 7, y + 8, 3, 14);
+            }
+        }
+    }
+
     // ===== astros =====
 
     public static void planeta(Graphics2D g, double cx, double cy, double r, Color base) {

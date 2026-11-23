@@ -94,7 +94,7 @@ public class CenaFinal extends JPanel {
             for (int i = 0; i < 6; i++) {
                 chegou[i] = true;
             }
-        } else if (tempo > T_FIM + 4000) {
+        } else if (tempo > T_FIM + 11000) {
             relogio.stop();
             janela.mostrarMenu();
         }
@@ -206,15 +206,17 @@ public class CenaFinal extends JPanel {
         g.setColor(new Color(0, 0, 20, 90));
         g.fillRect(0, 0, LARGURA, 460);
 
-        linha(g, t, 400, "VOCÊ VOLTOU PARA A TERRA!", new Font("SansSerif", Font.BOLD, 50), 140, Desenho.AMARELO);
-        linha(g, t, 2000, "Quando a aluna voltou para a aula, a primeira coisa que fez foi...",
-                new Font("SansSerif", Font.BOLD, 24), 220, Color.WHITE);
-        linha(g, t, 4000, "FECHAR A PORTA.", new Font("SansSerif", Font.BOLD, 44), 290, Desenho.AMARELO);
-        linha(g, t, 6000, "FIM  -  Obrigado por jogar!", new Font("SansSerif", Font.BOLD, 24), 360,
+        linha(g, t, 400, "VOCÊ VOLTOU PARA A TERRA!", new Font("SansSerif", Font.BOLD, 50), 130, Desenho.AMARELO);
+        linha(g, t, 1500, "Zoe: \"Conseguimos! Valeu pela ajuda. Agora eu vou fechar aquela porta.\"",
+                new Font("SansSerif", Font.ITALIC, 22), 190, new Color(220, 210, 255));
+        linha(g, t, 3200, "Quando a Zoe voltou para a aula, a primeira coisa que fez foi...",
+                new Font("SansSerif", Font.BOLD, 24), 250, Color.WHITE);
+        linha(g, t, 5200, "FECHAR A PORTA.", new Font("SansSerif", Font.BOLD, 44), 320, Desenho.AMARELO);
+        linha(g, t, 7200, "FIM  -  Obrigado por jogar!", new Font("SansSerif", Font.BOLD, 24), 385,
                 new Color(200, 190, 255));
-        if (t > 7000 && (t / 500) % 2 == 0) {
+        if (t > 8200 && (t / 500) % 2 == 0) {
             g.setFont(new Font("SansSerif", Font.BOLD, 18));
-            Desenho.textoCentro(g, "ENTER ou clique: voltar ao menu", LARGURA / 2, 420, Desenho.AMARELO);
+            Desenho.textoCentro(g, "ENTER ou clique: voltar ao menu", LARGURA / 2, 440, Desenho.AMARELO);
         }
     }
 
