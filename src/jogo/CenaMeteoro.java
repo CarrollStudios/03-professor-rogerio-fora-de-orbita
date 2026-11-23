@@ -57,7 +57,7 @@ public class CenaMeteoro extends JPanel {
     private float clarao = 0f;
 
     // ===== Falas =====
-    private Fala alerta = new Fala("Aluna", "Cuidado! Um asteroide!");
+    private Fala alerta = new Fala("Zoe", "Cuidado! Um asteroide!");
     private List<Fala> falas = new ArrayList<>();
     private Fala falaNaTela = null;
     private int falaAtual = 0;
@@ -82,9 +82,9 @@ public class CenaMeteoro extends JPanel {
         fogo[1] = Imagens.carregar("/images/nave/nave-fogo-2.png");
         alunaAstronauta = Imagens.carregar("/images/personagens/aluna-astronauta.png");
 
-        falas.add(new Fala("Aluna", "Ufa! Ainda bem que eu estava de capacete!"));
-        falas.add(new Fala("Aluna", "A nave quebrou em 6 peças, e elas se espalharam pelo espaço..."));
-        falas.add(new Fala("Aluna", "Me ajuda a recuperar as peças? Assim a gente volta para a Terra!"));
+        falas.add(new Fala("Zoe", "Ufa! Ainda bem que eu estava de capacete!"));
+        falas.add(new Fala("Zoe", "A nave quebrou em 6 peças, e elas se espalharam pelo espaço..."));
+        falas.add(new Fala("Zoe", "Me ajuda a recuperar as peças? Assim a gente volta para a Terra!"));
 
         // botões (aparecem só no final)
         botaoVerDeNovo = Botoes.criar("/images/meteoro/botao-ver-de-novo.png", "/images/meteoro/botao-ver-de-novo-hover.png");
