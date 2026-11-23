@@ -2,7 +2,7 @@ package jogo;
 
 /**
  * Uma fala do diálogo: quem fala e o que fala.
- * Exemplo: new Fala("Roger", "Quem deixou a porta aberta... de novo?")
+ * Exemplo: new Fala("Professor Rogério", "Quem deixou a porta aberta... de novo?")
  * Feita por Gih (Front-end) - Carroll Studios.
  */
 public class Fala {
