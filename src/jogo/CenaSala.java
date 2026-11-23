@@ -77,11 +77,11 @@ public class CenaSala extends JPanel {
         alunaFrente = Imagens.carregar("/images/personagens/aluna-frente.png");
         spriteAluna = caminhada.primeiroDesenho();
 
-        falas.add(new Fala("Professor Roger", "Quem deixou a porta aberta... de novo?"));
-        falas.add(new Fala("Aluna", "Foi o vento, professor."));
-        falas.add(new Fala("Professor Roger", "O vento? Então vai explicar isso lá no espaço."));
-        falas.add(new Fala("Aluna", "Pera, como assim?!"));
-        falas.add(new Fala("Professor Roger", "Boa viagem!"));
+        falas.add(new Fala("Professor Rogério", "Quem deixou a porta aberta... de novo?"));
+        falas.add(new Fala("Zoe", "Foi o vento, professor."));
+        falas.add(new Fala("Professor Rogério", "O vento? Então vai explicar isso lá no espaço."));
+        falas.add(new Fala("Zoe", "Pera, como assim?!"));
+        falas.add(new Fala("Professor Rogério", "Boa viagem!"));
 
         // botão PULAR: vai direto para a decolagem (para quem já viu a história)
         setLayout(null);   // eu escolho a posição do botão
@@ -142,7 +142,7 @@ public class CenaSala extends JPanel {
     // Diz para a câmera mirar no rosto de quem está falando
     private void mirarCamera(String nome) {
         alvoZoom = ZOOM_FALA;
-        if (nome.equals("Aluna")) {
+        if (nome.equals("Zoe")) {
             alvoX = X_ALUNA + 20;
             alvoY = CHAO - alunaFrente.getHeight() + 95;
         } else {
