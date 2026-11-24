@@ -17,7 +17,7 @@ import javax.swing.Timer;
 
 /**
  * Cutscene da sala de aula (LAB 3), sem ação do jogador.
- * A aluna entra, o Professor Roger se assusta com a porta aberta
+ * A aluna entra, o Professor Rogério se assusta com a porta aberta
  * e manda a aluna para o espaço (a nave vem buscar na CenaDecolagem). Em cada fala, a câmera dá zoom
  * em quem está falando (os personagens não se mexem).
  * Feita por Gih (Front-end) - Carroll Studios.
@@ -77,11 +77,16 @@ public class CenaSala extends JPanel {
         alunaFrente = Imagens.carregar("/images/personagens/aluna-frente.png");
         spriteAluna = caminhada.primeiroDesenho();
 
+        // A conversa da sala (cada fala cabe em até 2 linhas da caixa)
         falas.add(new Fala("Professor Rogério", "Quem deixou a porta aberta... de novo?"));
         falas.add(new Fala("Zoe", "Foi o vento, professor."));
-        falas.add(new Fala("Professor Rogério", "O vento? Então vai explicar isso lá no espaço."));
+        falas.add(new Fala("Professor Rogério", "O vento? Zoe, foi você que entrou por ela agora há pouco."));
+        falas.add(new Fala("Zoe", "Foi sem querer, professor! Eu estava atrasada para a aula..."));
+        falas.add(new Fala("Professor Rogério", "Sabe nem fechar uma porta, quem dirá programar em Java."));
+        falas.add(new Fala("Zoe", "Isso foi maldade! Eu estudei para a aula de hoje!"));
+        falas.add(new Fala("Professor Rogério", "Vocês podem sair daqui sem aprender nada de Java, mas vai aprender a fechar uma porta."));
         falas.add(new Fala("Zoe", "Pera, como assim?!"));
-        falas.add(new Fala("Professor Rogério", "Boa viagem!"));
+        falas.add(new Fala("Professor Rogério", "Vai explicar essa história do vento lá no espaço. Boa viagem!"));
 
         // botão PULAR: vai direto para a decolagem (para quem já viu a história)
         setLayout(null);   // eu escolho a posição do botão
@@ -232,7 +237,7 @@ public class CenaSala extends JPanel {
             g.drawImage(fundo, 0, 0, null);
         }
 
-        // Professor Roger (treme um pouquinho quando se assusta)
+        // Professor Rogério (treme um pouquinho quando se assusta)
         boolean assustado = etapa == Etapa.DIALOGO && falaAtual == 0;
         if (roger != null) {
             int tremor = (assustado && letrasVisiveis < 12) ? ((tempoNaEtapa / 60) % 2 == 0 ? -3 : 3) : 0;

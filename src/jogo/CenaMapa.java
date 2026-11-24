@@ -30,7 +30,7 @@ public class CenaMapa extends JPanel {
     // Centro de cada ponto do mapa: 0 = Lua, 1 a 3 = planetas das fases, 4 = Terra
     private static final double[][] NOS = { { 200, 530 }, { 430, 440 }, { 660, 580 }, { 900, 390 }, { 1140, 215 } };
     private static final Color[] COR_PLANETA = { new Color(255, 150, 50), new Color(235, 80, 170), new Color(40, 200, 220) };
-    private static final double[] RAIO = { 34, 38, 34 };
+    private static final double[] RAIO = { 40, 36, 40 };
 
     private static final double ESCALA_ALUNA = 0.32;
 
@@ -200,7 +200,11 @@ public class CenaMapa extends JPanel {
         for (int k = 1; k <= 3; k++) {
             double px = NOS[k][0], py = NOS[k][1], r = RAIO[k - 1];
             double balanco = Math.sin(tempo / 700.0 + k) * 3;
-            Desenho.planeta(g, px, py + balanco, r, COR_PLANETA[k - 1]);
+            Planetas.desenhar(g, k - 1, px, py + balanco, r, 1f);
+            if (k == 3) {
+                // o ET que ajuda na última fase
+                Desenho.alien(g, px - r - 22, py + balanco + 40 + Math.sin(tempo / 400.0) * 3, 2);
+            }
 
             // número da fase
             g.setColor(Color.WHITE);
@@ -247,11 +251,11 @@ public class CenaMapa extends JPanel {
         g.setFont(new Font("SansSerif", Font.BOLD, 40));
         Desenho.texto(g, "Missão: voltar para a Terra", 110, 70, Color.WHITE);
         g.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        Desenho.paragrafo(g, "As 6 peças da nave estão espalhadas por estes planetas. "
-                + "Visite cada um e resolva os puzzles para recuperá-las!", 112, 104, 620, 24, new Color(225, 215, 255));
+        Desenho.paragrafo(g, "Zoe: \"Ei, você aí! Preciso da sua ajuda para consertar a nave e voltar para casa. "
+                + "As 6 peças estão espalhadas por estes planetas!\"", 112, 104, 620, 24, new Color(225, 215, 255));
         if (!Progresso.terminou() && !viajando) {
             g.setFont(new Font("SansSerif", Font.BOLD, 18));
-            Desenho.texto(g, "Próxima peça: " + SistemaNave.values()[Progresso.getPecas()].nome, 112, 168, Desenho.AMARELO);
+            Desenho.texto(g, "Próxima peça: " + SistemaNave.values()[Progresso.getPecas()].nome, 112, 180, Desenho.AMARELO);
         }
 
         // painel de progresso e botão
