@@ -27,6 +27,17 @@ public class PuzzleQuiz extends Puzzle {
         this.instrucao = instrucao;
         this.perguntas = perguntas;
         this.riscada = new boolean[perguntas.length][4];
+        // retoma na pergunta certa (o jogo lembra quantas já foram acertadas)
+        this.atual = Math.min(Progresso.getProgressoQuiz(sistema.ordinal()), perguntas.length - 1);
+    }
+
+    // Os ids das perguntas deste quiz, na ordem em que aparecem (para o banco de dados)
+    public String[] idsDasPerguntas() {
+        String[] r = new String[perguntas.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = perguntas[i].id;
+        }
+        return r;
     }
 
     @Override
@@ -123,6 +134,7 @@ public class PuzzleQuiz extends Puzzle {
         if (i == perguntas[atual].certa) {
             piscaCerto = true;
             atual++;
+            Progresso.salvarProgressoQuiz(sistema.ordinal(), atual);
             if (atual >= perguntas.length) {
                 fim = 0;
                 dizer("Peça encaixada!", VERDE);

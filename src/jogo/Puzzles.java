@@ -1,12 +1,14 @@
 package jogo;
 
+import java.util.Random;
+
 /**
  * Fábrica de puzzles. Cada fase tem um NÍVEL:
  *   fase 1 = fácil, fase 2 = médio, fase 3 = difícil.
  * Cada fase tem 6 puzzles possíveis (veja a lista abaixo), mas o jogo só usa 2 por fase (um para cada peça).
- * Quais são sorteados fica por conta do Progresso (o sorteio acontece quando o jogo começa do zero),
- * então ao recomeçar depois de um game over os desafios mudam. E os puzzles de pergunta e os de
- * "bagunça" (rodas, ordem, luzes) também sorteiam o conteúdo de novo a cada vez.
+ * Quais são sorteados fica por conta do Progresso, que também guarda uma SEMENTE por peça: com a
+ * mesma semente o puzzle sai sempre igual (mesmas perguntas, mesma bagunça nas rodas...), então sair e
+ * voltar não troca o desafio. Depois de um game over a fase é sorteada de novo (puzzles e sementes novos).
  *
  * Os 6 puzzles possíveis de cada fase:
  *   0 = quiz 1      (fácil: sequências de números | médio e difícil: Java)
@@ -23,37 +25,40 @@ public class Puzzles {
     public static Puzzle criar(int peca) {
         int fase = peca / 2;
         int sorteado = Progresso.getSorteio(fase, peca % 2);
-        Puzzle p = novo(SistemaNave.values()[peca], fase, sorteado);
+        // a semente da peça faz o conteúdo sair sempre igual (mesmas perguntas, mesma sequência...)
+        Random sorteio = new Random(Progresso.getSemente(peca));
+        Puzzle p = novo(SistemaNave.values()[peca], fase, sorteado, sorteio);
         if (fase == 2) {
             p.ativarDicas();
         }
         return p;
     }
 
-    private static Puzzle novo(SistemaNave s, int nivel, int qual) {
+    private static Puzzle novo(SistemaNave s, int nivel, int qual, Random r) {
 
         switch (qual) {
 
             case 0:
                 if (nivel == 0) {
-                    return new PuzzleQuiz(s, "Complete as sequências de números.", Perguntas.numeros(nivel, 3));
+                    return new PuzzleQuiz(s, "Complete as sequências de números.", Perguntas.numeros(nivel, 3, r));
                 }
-                return new PuzzleQuiz(s, "Responda sobre Java para religar os sistemas.", Perguntas.java(nivel, 3));
+                return new PuzzleQuiz(s, "Responda sobre Java para religar os sistemas.", Perguntas.java(nivel, 3, r));
 
             case 1:
                 if (nivel == 0) {
-                    return new PuzzleQuiz(s, "Responda sobre Java para religar os sistemas.", Perguntas.java(nivel, 3));
+                    return new PuzzleQuiz(s, "Responda sobre Java para religar os sistemas.", Perguntas.java(nivel, 3, r));
                 }
-                return new PuzzleQuiz(s, "Resolva os desafios de lógica do computador de bordo.", Perguntas.logica(nivel, 3));
+                return new PuzzleQuiz(s, "Resolva os desafios de lógica do computador de bordo.", Perguntas.logica(nivel, 3, r));
 
             case 2:
-                return new PuzzleSequencia(s, nivel);
+                return new PuzzleSequencia(s, nivel, r);
 
             case 3:
-                return nivel == 0 ? PuzzleOrdem.temperaturas(s) : nivel == 1 ? PuzzleOrdem.planetas(s) : PuzzleOrdem.programa(s);
+                return nivel == 0 ? PuzzleOrdem.temperaturas(s, r)
+                        : nivel == 1 ? PuzzleOrdem.planetas(s, r) : PuzzleOrdem.programa(s, r);
 
             case 4:
-                return new PuzzleRodas(s, nivel + 3);
+                return new PuzzleRodas(s, nivel + 3, r);
 
             default:
                 return new PuzzleLabirinto(s, nivel);

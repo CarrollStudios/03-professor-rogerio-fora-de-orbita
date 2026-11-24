@@ -40,7 +40,7 @@ public abstract class Puzzle {
     // Dica do ET (só existe na última fase)
     private boolean dicasAtivas = false;
     private boolean dicaAberta = false;
-    private int dicasUsadasAqui = 0;
+    private int dicasUsadasAqui;      // começa com o que já foi usado nesta peça (o jogo lembra)
     private int numeroDica = 0;
     private String textoDica = "";
     private static final Rectangle BOTAO_DICA = new Rectangle(PX + PW - 262, PY + PH - 82, 232, 40);
@@ -103,6 +103,7 @@ public abstract class Puzzle {
 
     public void ativarDicas() {
         dicasAtivas = true;
+        dicasUsadasAqui = Math.min(Progresso.getDicasUsadas(sistema.ordinal()), dicas().length);
     }
 
     private void pedirDica() {
@@ -115,7 +116,7 @@ public abstract class Puzzle {
                 dizer("O ET não tem mais dicas!", VERMELHO);
                 return;
             }
-            Progresso.usouDica();
+            Progresso.usouDica(sistema.ordinal());
             numeroDica = dicasUsadasAqui;
             dicasUsadasAqui++;
             aplicarDica(numeroDica);

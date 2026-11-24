@@ -18,7 +18,8 @@ import javax.swing.Timer;
 
 /**
  * Tela de fim de jogo: o oxigênio da Zoe acabou.
- * O botão Recomeçar zera o progresso e o jogo volta para o começo (corredor da escola).
+ * O botão recomeça SÓ A FASE em que ela perdeu: as fases anteriores e as peças delas continuam,
+ * e a fase volta com oxigênio cheio e puzzles novos (veja Progresso.reiniciarFase).
  */
 public class CenaGameOver extends JPanel {
 
@@ -26,7 +27,8 @@ public class CenaGameOver extends JPanel {
     private static final int ALTURA = 720;
     private static final int TIQUE = 30;
 
-    private final Rectangle botao = new Rectangle(LARGURA / 2 - 130, 548, 260, 66);
+    private final Rectangle botao = new Rectangle(LARGURA / 2 - 190, 548, 380, 66);
+    private final int fase = Progresso.getFase();       // fase em que a Zoe perdeu (0, 1 ou 2)
     private BufferedImage fundo, aluna;
     private int tempo = 0;
     private int mouseX, mouseY;
@@ -83,8 +85,8 @@ public class CenaGameOver extends JPanel {
         saindo = true;
         Sons.tocar("/sons/efeitos/clique.wav");
         relogio.stop();
-        Progresso.zerar();       // tudo volta ao começo: peças, oxigênio e dicas
-        janela.iniciarJogo();    // sem progresso, começa pelo corredor
+        Progresso.reiniciarFase();      // só esta fase volta ao começo (oxigênio cheio, puzzles novos)
+        janela.mostrarFase(fase);
     }
 
     @Override
@@ -117,15 +119,19 @@ public class CenaGameOver extends JPanel {
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
         Desenho.texto(g, "Zoe", 322, 446, Color.WHITE);
         g.setFont(new Font("SansSerif", Font.BOLD, 26));
-        Desenho.texto(g, "Não deu dessa vez… Vamos recomeçar?", 316, 490, Desenho.TEXTO);
+        Desenho.texto(g, "Não deu dessa vez… Vamos tentar a fase " + (fase + 1) + " de novo?", 316, 490, Desenho.TEXTO);
 
         // botão Recomeçar
         boolean sobre = botao.contains(mouseX, mouseY);
         Desenho.caixa(g, botao.x, botao.y, botao.width, botao.height,
                 sobre ? new Color(120, 70, 220) : new Color(90, 50, 180), Desenho.AMARELO);
         g.setFont(new Font("SansSerif", Font.BOLD, 30));
-        Desenho.textoCentro(g, "Recomeçar", botao.x + botao.width / 2, botao.y + 44, Color.WHITE);
+        Desenho.textoCentro(g, "Recomeçar a fase " + (fase + 1), botao.x + botao.width / 2, botao.y + 44, Color.WHITE);
         g.setFont(new Font("SansSerif", Font.PLAIN, 16));
         Desenho.textoCentro(g, "ou aperte ENTER", LARGURA / 2, botao.y + botao.height + 28, new Color(230, 215, 235));
+        if (fase > 0) {
+            Desenho.textoCentro(g, "As peças das fases anteriores continuam com você.", LARGURA / 2, 196,
+                    new Color(255, 225, 160));
+        }
     }
 }

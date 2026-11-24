@@ -32,14 +32,13 @@ public class PuzzleRodas extends Puzzle {
     private int marcada = -1;                      // roda que o ET mandou clicar (-1 = nenhuma)
 
     // rodas: 3 = fácil, 4 = médio, 5 = difícil
-    public PuzzleRodas(SistemaNave sistema, int rodas) {
+    public PuzzleRodas(SistemaNave sistema, int rodas, Random sorteio) {
         super(sistema);
         N = rodas;
         folga = rodas <= 3 ? 7 : rodas == 4 ? 6 : 5;
         giros = new int[N];
         inicial = new int[N];
         angulo = new double[N];
-        Random sorteio = new Random();
         do {
             for (int i = 0; i < N; i++) {
                 giros[i] = 0;

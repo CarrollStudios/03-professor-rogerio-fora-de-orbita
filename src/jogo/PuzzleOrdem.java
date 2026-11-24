@@ -32,7 +32,8 @@ public class PuzzleOrdem extends Puzzle {
     private double tempoErro = 0;
 
     // emOrdem = os itens já na ordem CERTA (a tela mostra embaralhados)
-    public PuzzleOrdem(SistemaNave sistema, String instrucao, String[] emOrdem, boolean comIcone, String[] dicas) {
+    public PuzzleOrdem(SistemaNave sistema, String instrucao, String[] emOrdem, boolean comIcone, String[] dicas,
+            Random sorteio) {
         super(sistema);
         this.instrucao = instrucao;
         this.comIcone = comIcone;
@@ -43,7 +44,7 @@ public class PuzzleOrdem extends Puzzle {
             ordem.add(i);
         }
         do {
-            Collections.shuffle(ordem);
+            Collections.shuffle(ordem, sorteio);
         } while (jaEstaEmOrdem(ordem));
         textos = new String[n];
         posicao = new int[n];
@@ -66,10 +67,10 @@ public class PuzzleOrdem extends Puzzle {
     // ---------------------------------------------------------------- as 3 versões
 
     // Nível fácil: do mais FRIO ao mais QUENTE
-    public static PuzzleOrdem temperaturas(SistemaNave s) {
+    public static PuzzleOrdem temperaturas(SistemaNave s, Random sorteio) {
         Integer[] pool = { -50, -20, -10, 0, 15, 40, 85, 120, 150 };
         List<Integer> lista = new ArrayList<>(Arrays.asList(pool));
-        Collections.shuffle(lista);
+        Collections.shuffle(lista, sorteio);
         List<Integer> escolhidas = new ArrayList<>(lista.subList(0, 4));
         Collections.sort(escolhidas);
         String[] itens = new String[4];
@@ -77,17 +78,17 @@ public class PuzzleOrdem extends Puzzle {
             itens[i] = escolhidas.get(i) + " °C";
         }
         return new PuzzleOrdem(s, "Ligue os radiadores do mais FRIO para o mais QUENTE, clicando na ordem certa.", itens, true,
-                null);
+                null, sorteio);
     }
 
     // Nível médio: do mais PERTO ao mais LONGE do Sol
-    public static PuzzleOrdem planetas(SistemaNave s) {
+    public static PuzzleOrdem planetas(SistemaNave s, Random sorteio) {
         String[] todos = { "Mercúrio", "Vênus", "Terra", "Marte", "Júpiter", "Saturno", "Urano", "Netuno" };
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < todos.length; i++) {
             indices.add(i);
         }
-        Collections.shuffle(indices);
+        Collections.shuffle(indices, sorteio);
         List<Integer> escolhidos = new ArrayList<>(indices.subList(0, 5));
         Collections.sort(escolhidos);
         String[] itens = new String[5];
@@ -95,17 +96,17 @@ public class PuzzleOrdem extends Puzzle {
             itens[i] = todos[escolhidos.get(i)];
         }
         return new PuzzleOrdem(s, "Aponte o radar para os planetas, do mais PERTO para o mais LONGE do Sol.", itens, false,
-                null);
+                null, sorteio);
     }
 
     // Nível difícil: a vida de um programa Java
-    public static PuzzleOrdem programa(SistemaNave s) {
+    public static PuzzleOrdem programa(SistemaNave s, Random sorteio) {
         String[] passos = { "Escrever o código-fonte (.java)", "Compilar com o javac", "Gerar o bytecode (.class)",
                 "Carregar na JVM", "Executar o método main", "Mostrar a saída na tela" };
         return new PuzzleOrdem(s, "Coloque na ordem o que acontece desde escrever até rodar um programa Java.", passos, false,
                 new String[] {
                         "Pense em como um programa Java nasce: alguém escreve, o computador traduz e só depois executa.",
-                        "Vou marcar com a seta verde o próximo passo certo. Siga a partir dele!" });
+                        "Vou marcar com a seta verde o próximo passo certo. Siga a partir dele!" }, sorteio);
     }
 
     // ---------------------------------------------------------------- o puzzle

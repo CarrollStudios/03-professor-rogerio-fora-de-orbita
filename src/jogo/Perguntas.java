@@ -3,24 +3,39 @@ package jogo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Bancos de perguntas dos puzzles de quiz.
  * Cada banco tem MAIS perguntas do que o puzzle usa: a cada vez, algumas são sorteadas
  * (e as alternativas também são embaralhadas), então ao recomeçar o jogo as perguntas mudam.
- * Para acrescentar uma pergunta: é só colocar mais uma linha p(...) no banco.
+ * Para acrescentar uma pergunta: é só colocar mais uma linha p(...) no FIM do banco.
+ *
+ * IDs: cada pergunta tem um id fixo, montado com o nome do banco e a posição dela nele
+ * (por exemplo "JAVA-DIF-03"). É esse id que vai para o banco de dados. Por isso:
+ *  - NUNCA mude a ordem das perguntas de um banco nem apague uma do meio (acrescente só no fim);
+ *  - se mudar o texto de uma pergunta que já existe, aumente VERSAO.
+ *
+ * SORTEIO REPRODUZÍVEL: o sorteio usa um Random criado com a semente da peça (veja Progresso).
+ * Mesma semente + mesma VERSAO = exatamente as mesmas perguntas, na mesma ordem e com as
+ * alternativas embaralhadas do mesmo jeito.
  * Formato: p("pergunta", "dica do ET", "resposta CERTA", "errada 1", "errada 2", "errada 3")
  */
 public class Perguntas {
 
+    // Versão do conteúdo dos bancos (aumente quando alterar o texto de perguntas que já existem)
+    public static final int VERSAO = 1;
+
     // Uma pergunta já sorteada (com as alternativas embaralhadas)
     public static class Pergunta {
+        public final String id;
         public final String texto;
         public final String dica;
         public final String[] opcoes;
         public final int certa;      // posição (0 a 3) da resposta certa
 
-        Pergunta(String texto, String dica, String[] opcoes, int certa) {
+        Pergunta(String id, String texto, String dica, String[] opcoes, int certa) {
+            this.id = id;
             this.texto = texto;
             this.dica = dica;
             this.opcoes = opcoes;
@@ -30,6 +45,7 @@ public class Perguntas {
 
     // Uma pergunta ainda não embaralhada: a resposta certa é a primeira alternativa
     private static class Modelo {
+        String id = "";
         final String texto, dica;
         final String[] alternativas;
 
@@ -45,16 +61,16 @@ public class Perguntas {
     }
 
     // Sorteia 'quantas' perguntas diferentes do banco e embaralha as alternativas de cada uma
-    private static Pergunta[] sortear(Modelo[] banco, int quantas) {
+    private static Pergunta[] sortear(Modelo[] banco, int quantas, Random sorteio) {
         List<Modelo> lista = new ArrayList<>(java.util.Arrays.asList(banco));
-        Collections.shuffle(lista);
+        Collections.shuffle(lista, sorteio);
         Pergunta[] r = new Pergunta[Math.min(quantas, lista.size())];
         for (int i = 0; i < r.length; i++) {
             Modelo m = lista.get(i);
             List<String> alt = new ArrayList<>(java.util.Arrays.asList(m.alternativas));
             String certa = alt.get(0);
-            Collections.shuffle(alt);
-            r[i] = new Pergunta(m.texto, m.dica, alt.toArray(new String[0]), alt.indexOf(certa));
+            Collections.shuffle(alt, sorteio);
+            r[i] = new Pergunta(m.id, m.texto, m.dica, alt.toArray(new String[0]), alt.indexOf(certa));
         }
         return r;
     }
@@ -140,16 +156,32 @@ public class Perguntas {
             p("Quanto é 2 elevado a 5 ?", "2 x 2 x 2 x 2 x 2.", "32", "10", "25", "64"),
             p("Se a = 3 e b = 4, quanto vale a*a + b*b ?", "9 + 16.", "25", "12", "49", "14") };
 
-    // Bancos por nome (nível 0 = fácil, 1 = médio, 2 = difícil)
-    public static Pergunta[] numeros(int nivel, int quantas) {
-        return sortear(FACIL_NUMEROS, quantas);
+    // Dá a cada pergunta o seu id: nome do banco + posição (01, 02, ...)
+    private static void ids(String prefixo, Modelo[] banco) {
+        for (int i = 0; i < banco.length; i++) {
+            banco[i].id = prefixo + "-" + String.format("%02d", i + 1);
+        }
     }
 
-    public static Pergunta[] java(int nivel, int quantas) {
-        return sortear(nivel == 0 ? FACIL_JAVA : nivel == 1 ? MEDIO_JAVA : DIFICIL_JAVA, quantas);
+    static {
+        ids("NUM-FAC", FACIL_NUMEROS);
+        ids("JAVA-FAC", FACIL_JAVA);
+        ids("JAVA-MED", MEDIO_JAVA);
+        ids("LOG-MED", MEDIO_LOGICA);
+        ids("JAVA-DIF", DIFICIL_JAVA);
+        ids("LOG-DIF", DIFICIL_LOGICA);
     }
 
-    public static Pergunta[] logica(int nivel, int quantas) {
-        return sortear(nivel <= 1 ? MEDIO_LOGICA : DIFICIL_LOGICA, quantas);
+    // Bancos por tema (nível 0 = fácil, 1 = médio, 2 = difícil). 'sorteio' é o Random criado com a semente da peça.
+    public static Pergunta[] numeros(int nivel, int quantas, Random sorteio) {
+        return sortear(FACIL_NUMEROS, quantas, sorteio);
+    }
+
+    public static Pergunta[] java(int nivel, int quantas, Random sorteio) {
+        return sortear(nivel == 0 ? FACIL_JAVA : nivel == 1 ? MEDIO_JAVA : DIFICIL_JAVA, quantas, sorteio);
+    }
+
+    public static Pergunta[] logica(int nivel, int quantas, Random sorteio) {
+        return sortear(nivel <= 1 ? MEDIO_LOGICA : DIFICIL_LOGICA, quantas, sorteio);
     }
 }

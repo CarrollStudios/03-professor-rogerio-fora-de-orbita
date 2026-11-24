@@ -29,13 +29,12 @@ public class PuzzleSequencia extends Puzzle {
     private boolean lento = false;      // o ET mostra a sequência devagar (dica 2)
 
     // nivel: 0 = fácil (3 rodadas, devagar), 1 = médio (5), 2 = difícil (6, rápido)
-    public PuzzleSequencia(SistemaNave sistema, int nivel) {
+    public PuzzleSequencia(SistemaNave sistema, int nivel, Random sorteio) {
         super(sistema);
         rodadas = new int[] { 3, 5, 6 }[nivel];
         brilho = new double[] { 0.5, 0.4, 0.3 }[nivel];
         pausa = new double[] { 0.85, 0.7, 0.5 }[nivel];
         sequencia = new int[rodadas];
-        Random sorteio = new Random();
         for (int i = 0; i < rodadas; i++) {
             sequencia[i] = sorteio.nextInt(4);
         }

@@ -88,7 +88,6 @@ public class CenaSala extends JPanel {
         falas.add(new Fala("Zoe", "Pera, como assim?!"));
         falas.add(new Fala("Professor Rogério", "Vai explicar essa história do vento lá no espaço. Boa viagem!"));
 
-
         // botão PULAR: vai direto para a decolagem (para quem já viu a história)
         setLayout(null);   // eu escolho a posição do botão
         JButton pular = Botoes.criar("/images/botoes/botao-pular.png", "/images/botoes/botao-pular-hover.png");
