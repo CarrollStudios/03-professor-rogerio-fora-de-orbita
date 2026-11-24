@@ -33,7 +33,7 @@ Banco de dados responsável pelo armazenamento das informações e do progresso 
 | 📋 `scripts/tabelas/` | Scripts SQL para criação das tabelas. |
 | 📦 `scripts/dados/` | Scripts SQL para inserção dos dados iniciais. |
 | 🧩 `scripts/puzzles/` | Scripts relacionados aos dados dos puzzles, quando necessários. |
-| 🔎 `scripts/consultas/` | Consultas SQL utilizadas no projeto. |
+| 🔎 `scripts/consultas/` | Consultas SQL utilizadas no projeto e testes dos relacionamentos. |
 
 ## 🗄️ Banco de dados
 
@@ -67,6 +67,53 @@ O banco de dados considera as regras de funcionamento do jogo:
 
 As informações de perguntas, sementes, dicas e progresso são consideradas na estrutura de persistência, conforme o funcionamento implementado no jogo.
 
+## 🧪 Testes e validação
+
+Foram realizados testes diretamente no MySQL para verificar o funcionamento das tabelas responsáveis pelo registro do progresso dos jogadores.
+
+### 🔍 Conferência dos registros
+
+Foi realizada a consulta das sete tabelas para verificar os dados cadastrados.
+
+| 🗃️ Tabela | Registros encontrados |
+|---|---:|
+| `fases` | 3 |
+| `pecas_nave` | 6 |
+| `tipos_puzzle` | 6 |
+| `partida` | 0 |
+| `tentativa_fase` | 0 |
+| `tentativa_puzzle` | 0 |
+| `evento_puzzle` | 0 |
+
+### ⚙️ Testes de inserção
+
+Foram realizadas inserções temporárias nas quatro tabelas de progresso:
+
+- `partida`: teste de cadastro de uma partida.
+- `tentativa_fase`: teste do registro de uma tentativa vinculada a uma partida e a uma fase.
+- `tentativa_puzzle`: teste do registro de um puzzle vinculado à tentativa de fase.
+- `evento_puzzle`: teste do registro de uma resposta incorreta e do consumo de oxigênio.
+
+**Resultado:** as quatro inserções foram realizadas com sucesso, incluindo o preenchimento dos valores padrão e a geração automática dos identificadores.
+
+### 🔗 Teste dos relacionamentos
+
+Foi realizada uma consulta utilizando `INNER JOIN` entre as tabelas `partida`, `tentativa_fase`, `tentativa_puzzle` e `evento_puzzle`.
+
+**Resultado:** os dados relacionados foram recuperados corretamente em uma única consulta, demonstrando o funcionamento dos relacionamentos testados.
+
+### 🧹 Limpeza dos dados de teste
+
+Após a realização dos testes, os registros fictícios foram excluídos.
+
+**Resultado:** as tabelas de progresso retornaram à condição inicial, sem os registros temporários utilizados na validação.
+
+### ✅ Resultado geral
+
+Os testes permitiram verificar o funcionamento das operações de inserção, consulta e dos relacionamentos entre as tabelas de progresso.
+
+Essa validação foi realizada diretamente no MySQL e não representa ainda um teste de integração com a aplicação Java.
+
 ## 🔗 Integração
 
 O banco de dados do jogo é independente do armazenamento utilizado pelo sistema de login.
@@ -76,3 +123,4 @@ A identificação do jogador será recebida por meio da integração com o siste
 <br/>
 
 <img src="../resources/images/star-divider-2.svg" width="100%" alt="" />
+
