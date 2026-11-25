@@ -12,85 +12,79 @@ import banco.Partida;
 
 public class PartidaDAO {
 
-    // Registra uma nova partida no banco de dados
+    // Cadastra uma nova partida
     public int criarPartida(int idUsuario) {
 
         String sql = "INSERT INTO partida (id_usuario) VALUES (?)";
 
-        try (Connection conexao = Conexao.conectar()) {
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(
+                     sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            // Verifica a conexão
-            if (conexao == null) {
-                return -1;
+            comando.setInt(1, idUsuario);
+            comando.executeUpdate();
+
+            ResultSet resultado = comando.getGeneratedKeys();
+
+            if (resultado.next()) {
+                return resultado.getInt(1);
             }
 
-            // Prepara o comando SQL
-            try (PreparedStatement comando = conexao.prepareStatement(
-                    sql, Statement.RETURN_GENERATED_KEYS)) {
-
-                comando.setInt(1, idUsuario);
-
-                // Executa o cadastro
-                comando.executeUpdate();
-
-                // Recupera o ID gerado pelo banco
-                try (ResultSet resultado = comando.getGeneratedKeys()) {
-
-                    if (resultado.next()) {
-                        return resultado.getInt(1);
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-
-            // Exibe possíveis erros
-            System.out.println("Erro ao criar partida: " + e.getMessage());
+        } catch (SQLException erro) {
+            System.out.println("Erro ao cadastrar partida: " + erro.getMessage());
         }
 
         return -1;
     }
 
-    // Busca uma partida pelo identificador
+    // Busca uma partida pelo ID
     public Partida buscarPartidaPorId(int idPartida) {
 
         String sql = "SELECT * FROM partida WHERE id_partida = ?";
 
-        try (Connection conexao = Conexao.conectar()) {
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            // Verifica a conexão
-            if (conexao == null) {
-                return null;
+            comando.setInt(1, idPartida);
+
+            ResultSet resultado = comando.executeQuery();
+
+            if (resultado.next()) {
+
+                return new Partida(
+                    resultado.getInt("id_partida"),
+                    resultado.getInt("id_usuario"),
+                    resultado.getString("status"),
+                    resultado.getTimestamp("criada_em"),
+                    resultado.getTimestamp("atualizada_em")
+                );
             }
 
-            // Prepara a consulta
-            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
-
-                comando.setInt(1, idPartida);
-
-                // Executa a consulta
-                try (ResultSet resultado = comando.executeQuery()) {
-
-                    if (resultado.next()) {
-
-                        // Cria a partida com os dados encontrados
-                        return new Partida(
-                            resultado.getInt("id_partida"),
-                            resultado.getInt("id_usuario"),
-                            resultado.getString("status"),
-                            resultado.getTimestamp("criada_em"),
-                            resultado.getTimestamp("atualizada_em")
-                        );
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-
-            // Exibe possíveis erros
-            System.out.println("Erro ao buscar partida: " + e.getMessage());
+        } catch (SQLException erro) {
+            System.out.println("Erro ao buscar partida: " + erro.getMessage());
         }
 
         return null;
+    }
+
+    // Atualiza o status de uma partida
+    public boolean atualizarStatus(int idPartida, String novoStatus) {
+
+        String sql = "UPDATE partida SET status = ? WHERE id_partida = ?";
+
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+
+            comando.setString(1, novoStatus);
+            comando.setInt(2, idPartida);
+
+            int linhasAfetadas = comando.executeUpdate();
+
+            return linhasAfetadas > 0;
+
+        } catch (SQLException erro) {
+            System.out.println("Erro ao atualizar partida: " + erro.getMessage());
+            return false;
+        }
     }
 }

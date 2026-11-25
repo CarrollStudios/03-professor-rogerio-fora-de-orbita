@@ -1,22 +1,30 @@
 
 package banco.dao;
 
+import banco.Partida;
+
 public class TestePartidaDAO {
 
     public static void main(String[] args) {
 
-        // Cria um objeto para acessar os métodos de partida
+        // Cria o objeto responsável pelas operações
         PartidaDAO partidaDAO = new PartidaDAO();
 
-        // Testa o cadastro de uma nova partida
-        int idPartida = partidaDAO.criarPartida(1);
+        // Atualiza o status da partida de ID 2
+        boolean atualizado = partidaDAO.atualizarStatus(2, "concluida");
 
-        // Exibe o resultado do teste
-        if (idPartida != -1) {
-            System.out.println("Partida cadastrada com sucesso!");
-            System.out.println("ID da partida: " + idPartida);
+        if (atualizado) {
+            System.out.println("Status atualizado com sucesso!");
         } else {
-            System.out.println("Não foi possível cadastrar a partida.");
+            System.out.println("Nao foi possivel atualizar o status.");
+        }
+
+        // Busca a partida para conferir a alteração
+        Partida partida = partidaDAO.buscarPartidaPorId(2);
+
+        if (partida != null) {
+            System.out.println("ID: " + partida.getIdPartida());
+            System.out.println("Novo status: " + partida.getStatus());
         }
     }
 }
