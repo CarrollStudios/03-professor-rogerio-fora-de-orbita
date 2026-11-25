@@ -119,6 +119,11 @@ public class TelaJogo extends JFrame {
 		trocarCena(new CenaFinal(this));
 	}
 	
+	// Fim de jogo: o oxigênio da Zoe acabou
+	public void mostrarGameOver() {
+		trocarCena(new CenaGameOver(this));
+	}
+	
 	// Volta para o menu inicial
 	public void mostrarMenu() {
 		trocarCena(new TelaMenu(this));

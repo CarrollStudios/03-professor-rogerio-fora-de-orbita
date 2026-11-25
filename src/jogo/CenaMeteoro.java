@@ -83,7 +83,7 @@ public class CenaMeteoro extends JPanel {
         alunaAstronauta = Imagens.carregar("/images/personagens/aluna-astronauta.png");
 
         falas.add(new Fala("Zoe", "Ufa! Ainda bem que eu estava de capacete!"));
-        falas.add(new Fala("Zoe", "A nave quebrou em 6 peças, e elas se espalharam pelo espaço..."));
+        falas.add(new Fala("Zoe", "Ai, não! Minha nave quebrou, e as 6 peças se espalharam pelo espaço!"));
         falas.add(new Fala("Zoe", "Me ajuda a recuperar as peças? Assim a gente volta para a Terra!"));
 
         // botões (aparecem só no final)

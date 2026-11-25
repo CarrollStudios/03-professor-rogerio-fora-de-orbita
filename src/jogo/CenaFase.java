@@ -19,7 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
- * Uma fase no espaço. A aluna voa até a peça solta, aperta E e resolve o puzzle.
+ * Uma fase no espaço. A Zoe voa até a peça solta, aperta E e resolve o puzzle.
+ * Cada erro gasta 1 de oxigênio; sem oxigênio é game over.
+ * Na fase 3 aparece um ET que dá até 2 dicas (tecla H dentro do puzzle).
  * Cada fase tem 2 peças:
  *   fase 1 (índice 0) = peças 1 e 2, fase 2 (índice 1) = peças 3 e 4, fase 3 (índice 2) = peças 5 e 6.
  * O progresso é salvo (classe Progresso) cada vez que uma peça é recuperada.
@@ -39,7 +41,7 @@ public class CenaFase extends JPanel {
 
     private static final double ESCALA_ALUNA = 0.5;
 
-    private enum Estado { FALANDO, VOANDO, PUZZLE, COLETANDO, CONCLUIDA }
+    private enum Estado { FALANDO, VOANDO, PUZZLE, COLETANDO, CONCLUIDA, SEM_OXIGENIO }
 
     private final int fase;
     private Estado estado = Estado.FALANDO;
@@ -54,6 +56,13 @@ public class CenaFase extends JPanel {
     private int tempoColeta = 0;
     private int tempoFim = 0;
     private Puzzle puzzle;
+
+    // o ET da fase 3 (flutua perto do canto esquerdo)
+    private static final double ET_X = 330, ET_Y = 360;
+
+    // aviso da Zoe (balãozinho embaixo da tela)
+    private String avisoTexto = "";
+    private int avisoTempo = 0;
 
     // estrelas passando
     private final double[][] estrelas = new double[90][3];
@@ -86,14 +95,23 @@ public class CenaFase extends JPanel {
             e[2] = 0.5 + sorteio.nextDouble() * 2.5;
         }
 
-        // Falas do começo da fase (edite à vontade)
+        // Falas do começo da fase (edite à vontade; cada fala cabe em até 2 linhas da caixa)
         if (fase == 0) {
-            falas.add(new Fala("Aluna", "Ufa, que planeta é esse? Deve ter uma peça da nave por aqui!"));
-            falas.add(new Fala("Aluna", "Setas ou WASD para voar. Perto da peça, aperte E."));
+            falas.add(new Fala("Zoe", "Ufa, que planeta é esse? Deve ter uma peça da nave por aqui!"));
+            falas.add(new Fala("Zoe", "Cada fase tem 2 peças. Resolva os desafios que eu recupero as peças!"));
+            falas.add(new Fala("Zoe", "Cuidado: cada erro gasta o oxigênio do meu capacete. Conto com você!"));
+            falas.add(new Fala("Zoe", "Setas ou WASD para voar. Perto da peça, aperte E."));
         } else if (fase == 1) {
-            falas.add(new Fala("Aluna", "Mais um planeta! Já recuperei duas peças, faltam quatro."));
+            falas.add(new Fala("Zoe", "Fase 2! Agora ficou mais difícil, presta atenção."));
+            falas.add(new Fala("Zoe", "Troquei o tanque do capacete: oxigênio cheio de novo!"));
+            falas.add(new Fala("Zoe", "Se o professor Rogério me visse agora, ia ter que engolir aquele papo de que eu não sei programar!"));
         } else {
-            falas.add(new Fala("Aluna", "Falta pouco! Só mais duas peças e eu volto para a Terra!"));
+            falas.add(new Fala("Zoe", "Última fase! Mais duas peças e a gente volta para casa."));
+            falas.add(new Fala("Zoe", "Troquei o tanque de novo. Mas esses desafios parecem bem difíceis..."));
+            falas.add(new Fala("Zoe", "Ei! Tem alguém ali... um ET?!"));
+            falas.add(new Fala("ET", "Calma, terráquea, eu venho em paz! Vi o que o seu professor fez por causa de uma porta."));
+            falas.add(new Fala("ET", "Que povo estranho! Posso te dar até 2 dicas. Dentro de um desafio, aperte H."));
+            falas.add(new Fala("Zoe", "Valeu, ET! Vou guardar as dicas para quando eu realmente precisar."));
         }
         // se o jogador voltou no meio da fase (já tinha 1 peça), não repete a conversa
         if (Progresso.getPecas() % 2 == 1) {
@@ -156,6 +174,9 @@ public class CenaFase extends JPanel {
     private void atualizar() {
 
         tempo += TIQUE;
+        if (avisoTempo > 0) {
+            avisoTempo -= TIQUE;
+        }
 
         for (double[] e : estrelas) {
             e[0] -= e[2];
@@ -190,10 +211,22 @@ public class CenaFase extends JPanel {
 
             case PUZZLE:
                 puzzle.atualizar(DT);
-                if (puzzle.estaResolvido()) {
+                int erros = puzzle.coletarErros();
+                if (erros > 0) {
+                    errouNoPuzzle(erros);
+                } else if (puzzle.estaResolvido()) {
                     estado = Estado.COLETANDO;
                     tempoColeta = 0;
                     Sons.tocar("/sons/efeitos/pecas.wav");
+                    avisar("Isso! Mandou bem!");
+                }
+                break;
+
+            case SEM_OXIGENIO:
+                tempoFim += TIQUE;
+                if (tempoFim > 1300) {
+                    relogio.stop();
+                    janela.mostrarGameOver();
                 }
                 break;
 
@@ -216,6 +249,49 @@ public class CenaFase extends JPanel {
                 tempoFim += TIQUE;
                 break;
         }
+    }
+
+    // Cada erro tira 1 de oxigênio. Chegou a zero: game over.
+    private void errouNoPuzzle(int erros) {
+        boolean acabou = false;
+        for (int i = 0; i < erros && !acabou; i++) {
+            acabou = Progresso.perderOxigenio();
+        }
+        Sons.tocar("/sons/efeitos/batida.wav");
+        if (acabou) {
+            estado = Estado.SEM_OXIGENIO;
+            tempoFim = 0;
+            avisar("Não consigo respirar... o oxigênio acabou!");
+        } else if (Progresso.getOxigenio() <= 1) {
+            avisar("O oxigênio está acabando, capricha nessa!");
+        } else {
+            avisar("Ops… lá se vai um pouco do meu oxigênio.");
+        }
+    }
+
+    private void avisar(String texto) {
+        avisoTexto = texto;
+        avisoTempo = 3500;
+    }
+
+    private boolean pertoDoET() {
+        return fase == 2 && Math.hypot(x - ET_X, y - etY()) < 150;
+    }
+
+    private double etY() {
+        return ET_Y + Math.sin(tempo / 350.0) * 7;
+    }
+
+    // Apertar E perto do ET: ele lembra como pedir as dicas
+    private void falarComET() {
+        falas.clear();
+        int n = Progresso.getDicas();
+        falas.add(new Fala("ET", n > 0
+                ? "Dentro de um desafio, aperte H e eu ajudo. Ainda tenho " + n + (n == 1 ? " dica!" : " dicas!")
+                : "Já gastei todas as minhas dicas, terráquea. Agora é com você!"));
+        falaAtual = 0;
+        letras = 0;
+        estado = Estado.FALANDO;
     }
 
     // ================================================================== entrada
@@ -245,6 +321,8 @@ public class CenaFase extends JPanel {
                     puzzle = Puzzles.criar(pecaAtual());
                     estado = Estado.PUZZLE;
                     Sons.tocar("/sons/efeitos/clique.wav");
+                } else if (acao && pertoDoET()) {
+                    falarComET();
                 } else if (codigo == KeyEvent.VK_ESCAPE) {
                     voltarAoMapa();
                 }
@@ -254,7 +332,7 @@ public class CenaFase extends JPanel {
                     puzzle = null;
                     estado = Estado.VOANDO;
                 } else {
-                    puzzle.tecla(codigo);
+                    puzzle.teclaGeral(codigo);
                 }
                 break;
             case CONCLUIDA:
@@ -283,7 +361,7 @@ public class CenaFase extends JPanel {
         if (estado == Estado.FALANDO) {
             avancarFala();
         } else if (estado == Estado.PUZZLE) {
-            puzzle.clique(mx, my);
+            puzzle.cliqueGeral(mx, my);
         } else if (estado == Estado.CONCLUIDA && tempoFim > 500) {
             voltarAoMapa();
         } else if (estado == Estado.VOANDO && pertoDaPeca()
@@ -291,6 +369,8 @@ public class CenaFase extends JPanel {
             puzzle = Puzzles.criar(pecaAtual());
             estado = Estado.PUZZLE;
             Sons.tocar("/sons/efeitos/clique.wav");
+        } else if (estado == Estado.VOANDO && pertoDoET() && Math.hypot(mx - ET_X, my - etY()) < 80) {
+            falarComET();
         }
     }
 
@@ -330,8 +410,8 @@ public class CenaFase extends JPanel {
         Color cor = COR_PLANETA[fase];
         g.setColor(new Color(cor.getRed(), cor.getGreen(), cor.getBlue(), 28));
         g.fillRect(0, 0, LARGURA, ALTURA);
-        Desenho.planeta(g, 1100, 860, 330, Desenho.escurecer(cor, 0.6f));
-        Desenho.planeta(g, 130, 60, 60, Desenho.escurecer(cor, 0.45f));
+        // o planeta da fase, grande no canto, e uma lua pequena lá em cima
+        Planetas.desenhar(g, fase, 1120, 900, 380, 0.75f);
 
         g.setColor(new Color(255, 255, 255, 160));
         for (double[] e : estrelas) {
@@ -347,6 +427,21 @@ public class CenaFase extends JPanel {
                 g.setColor(new Color(255, 245, 160, 55));
                 g.fillOval((int) (pecaX() - raio), (int) (pecaY() - raio), (int) (2 * raio), (int) (2 * raio));
                 Desenho.imagemAjustada(g, SistemaNave.values()[pecaAtual()].imagem(), pecaX(), pecaY(), (int) (96 * crescer));
+            }
+        }
+
+        // o ET da fase 3
+        if (fase == 2) {
+            Desenho.alien(g, ET_X, etY() + 58, 5);
+            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            Desenho.textoCentro(g, "ET", (int) ET_X, (int) etY() + 82, new Color(150, 255, 180));
+            if (estado == Estado.VOANDO && pertoDoET() && !pertoDaPeca()) {
+                g.setFont(new Font("SansSerif", Font.BOLD, 18));
+                String t = "Pressione E para falar com o ET";
+                int lw = g.getFontMetrics().stringWidth(t) + 30;
+                int bx = (int) ET_X - lw / 2, by = (int) etY() - 100;
+                Desenho.caixa(g, bx, by, lw, 36, new Color(10, 12, 30, 230), new Color(150, 255, 180));
+                Desenho.texto(g, t, bx + 15, by + 25, new Color(150, 255, 180));
             }
         }
 
@@ -382,16 +477,32 @@ public class CenaFase extends JPanel {
 
         desenharPainel(g);
 
+
         if (estado == Estado.PUZZLE) {
             g.setColor(new Color(0, 0, 10, 170));
             g.fillRect(0, 0, LARGURA, ALTURA);
             puzzle.desenhar(g, mouseX, mouseY);
+        }
+
+        // aviso da Zoe (balão embaixo da tela)
+        if (avisoTempo > 0 && estado != Estado.FALANDO && estado != Estado.CONCLUIDA) {
+            Desenho.caixa(g, 190, 628, 900, 58, new Color(26, 23, 48, 245), Desenho.ROXO);
+            g.setColor(new Color(0x6D28D9));
+            g.fillRoundRect(206, 616, 76, 24, 12, 12);
+            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            Desenho.texto(g, "Zoe", 220, 634, Color.WHITE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 22));
+            Desenho.texto(g, avisoTexto, 212, 668, Desenho.TEXTO);
         }
         if (estado == Estado.FALANDO && !falas.isEmpty()) {
             desenharFala(g);
         }
         if (estado == Estado.CONCLUIDA) {
             desenharConcluida(g);
+        }
+        if (estado == Estado.SEM_OXIGENIO) {
+            g.setColor(new Color(60, 0, 10, (int) Math.min(200, tempoFim * 0.16)));
+            g.fillRect(0, 0, LARGURA, ALTURA);
         }
     }
 
@@ -411,6 +522,14 @@ public class CenaFase extends JPanel {
             boolean tem = Progresso.getPecas() > i && !(estado == Estado.COLETANDO && i == pecaAtual());
             SistemaNave s = SistemaNave.values()[i];
             Desenho.imagemAjustada(g, tem ? s.imagem() : s.sombra(), xDoSlot(i) + 26, 46, 48);
+        }
+
+        // oxigênio da Zoe
+        if (estado != Estado.PUZZLE) {   // dentro do puzzle, o oxigênio aparece no quadro do puzzle
+            Desenho.caixa(g, 100, 88, 168, 76, new Color(10, 12, 30, 215), new Color(110, 215, 255));
+            g.setFont(new Font("SansSerif", Font.BOLD, 14));
+            Desenho.texto(g, "OXIGÊNIO", 112, 108, new Color(170, 225, 255));
+            Desenho.oxigenio(g, 112, 118, Progresso.getOxigenio(), Progresso.OXIGENIO_MAXIMO, tempo);
         }
 
         if (estado == Estado.VOANDO) {
@@ -452,6 +571,9 @@ public class CenaFase extends JPanel {
             g.setFont(new Font("SansSerif", Font.PLAIN, 18));
             Desenho.paragrafo(g, s.descricao, px + 150, by + 64, pw - 190, 24, new Color(200, 200, 235));
         }
+        g.setFont(new Font("SansSerif", Font.BOLD, 20));
+        Desenho.textoCentro(g, "Zoe: \"Mais duas peças! A nave está ficando inteira.\"", LARGURA / 2, py + ph - 58,
+                new Color(200, 190, 255));
         if ((tempoFim / 500) % 2 == 0) {
             g.setFont(new Font("SansSerif", Font.BOLD, 18));
             Desenho.textoCentro(g, "ENTER ou clique: voltar ao mapa", LARGURA / 2, py + ph - 22, Desenho.AMARELO);
