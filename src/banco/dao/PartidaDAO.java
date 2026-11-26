@@ -24,14 +24,15 @@ public class PartidaDAO {
             comando.setInt(1, idUsuario);
             comando.executeUpdate();
 
-            ResultSet resultado = comando.getGeneratedKeys();
-
-            if (resultado.next()) {
-                return resultado.getInt(1);
+            try (ResultSet resultado = comando.getGeneratedKeys()) {
+                if (resultado.next()) {
+                    return resultado.getInt(1);
+                }
             }
 
         } catch (SQLException erro) {
-            System.out.println("Erro ao cadastrar partida: " + erro.getMessage());
+            System.out.println("Erro ao cadastrar partida: "
+                    + erro.getMessage());
         }
 
         return -1;
@@ -47,21 +48,53 @@ public class PartidaDAO {
 
             comando.setInt(1, idPartida);
 
-            ResultSet resultado = comando.executeQuery();
-
-            if (resultado.next()) {
-
-                return new Partida(
-                    resultado.getInt("id_partida"),
-                    resultado.getInt("id_usuario"),
-                    resultado.getString("status"),
-                    resultado.getTimestamp("criada_em"),
-                    resultado.getTimestamp("atualizada_em")
-                );
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (resultado.next()) {
+                    return new Partida(
+                            resultado.getInt("id_partida"),
+                            resultado.getInt("id_usuario"),
+                            resultado.getString("status"),
+                            resultado.getTimestamp("criada_em"),
+                            resultado.getTimestamp("atualizada_em")
+                    );
+                }
             }
 
         } catch (SQLException erro) {
-            System.out.println("Erro ao buscar partida: " + erro.getMessage());
+            System.out.println("Erro ao buscar partida: "
+                    + erro.getMessage());
+        }
+
+        return null;
+    }
+
+    // Busca a partida ativa de um usuário
+    public Partida buscarPartidaAtivaPorUsuario(int idUsuario) {
+
+        String sql = "SELECT * FROM partida "
+                + "WHERE id_usuario = ? AND status = 'em_andamento' "
+                + "ORDER BY atualizada_em DESC LIMIT 1";
+
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+
+            comando.setInt(1, idUsuario);
+
+            try (ResultSet resultado = comando.executeQuery()) {
+                if (resultado.next()) {
+                    return new Partida(
+                            resultado.getInt("id_partida"),
+                            resultado.getInt("id_usuario"),
+                            resultado.getString("status"),
+                            resultado.getTimestamp("criada_em"),
+                            resultado.getTimestamp("atualizada_em")
+                    );
+                }
+            }
+
+        } catch (SQLException erro) {
+            System.out.println("Erro ao buscar partida ativa: "
+                    + erro.getMessage());
         }
 
         return null;
@@ -78,13 +111,13 @@ public class PartidaDAO {
             comando.setString(1, novoStatus);
             comando.setInt(2, idPartida);
 
-            int linhasAfetadas = comando.executeUpdate();
-
-            return linhasAfetadas > 0;
+            return comando.executeUpdate() > 0;
 
         } catch (SQLException erro) {
-            System.out.println("Erro ao atualizar partida: " + erro.getMessage());
-            return false;
+            System.out.println("Erro ao atualizar partida: "
+                    + erro.getMessage());
         }
+
+        return false;
     }
 }

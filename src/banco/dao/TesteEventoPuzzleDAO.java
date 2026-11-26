@@ -2,6 +2,7 @@
 package banco.dao;
 
 import banco.EventoPuzzle;
+import java.util.List;
 
 public class TesteEventoPuzzleDAO {
 
@@ -9,36 +10,39 @@ public class TesteEventoPuzzleDAO {
 
         EventoPuzzleDAO eventoDAO = new EventoPuzzleDAO();
 
-        // Cadastra um evento
-        int idGerado = eventoDAO.criarEvento(
-                2, "resposta", "alternativa A",
-                true, 0, 4
-        );
+        int idEvento = 2;
+        int idTentativaPuzzle = 2;
 
-        if (idGerado != -1) {
+        // Busca um evento pelo ID
+        EventoPuzzle evento = eventoDAO.buscarEventoPorId(idEvento);
 
-            System.out.println("Evento cadastrado com sucesso!");
-            System.out.println("ID do evento: " + idGerado);
+        if (evento != null) {
 
-            // Busca o evento cadastrado
-            EventoPuzzle evento =
-                    eventoDAO.buscarEventoPorId(idGerado);
+            System.out.println("Evento encontrado!");
+            System.out.println("ID: " + evento.getIdEvento());
+            System.out.println("Tentativa de puzzle: " + evento.getIdTentativaPuzzle());
+            System.out.println("Tipo: " + evento.getTipoEvento());
+            System.out.println("Valor: " + evento.getValor());
+            System.out.println("Correto: " + evento.getCorreto());
+            System.out.println("Custo de oxigenio: " + evento.getCustoOxigenio());
+            System.out.println("Oxigenio depois: " + evento.getOxigenioDepois());
+            System.out.println("Criado em: " + evento.getCriadoEm());
 
-            if (evento != null) {
+        } else {
+            System.out.println("Evento nao encontrado.");
+        }
 
-                System.out.println("\nDados do evento:");
-                System.out.println("ID: " + evento.getIdEvento());
-                System.out.println("Tentativa de puzzle: "
-                        + evento.getIdTentativaPuzzle());
-                System.out.println("Tipo: " + evento.getTipoEvento());
-                System.out.println("Valor: " + evento.getValor());
-                System.out.println("Correto: " + evento.getCorreto());
-                System.out.println("Custo de oxigênio: "
-                        + evento.getCustoOxigenio());
-                System.out.println("Oxigênio depois: "
-                        + evento.getOxigenioDepois());
-                System.out.println("Criado em: " + evento.getCriadoEm());
-            }
+        // Lista os eventos da tentativa de puzzle
+        List<EventoPuzzle> eventos =
+                eventoDAO.listarEventosPorTentativaPuzzle(idTentativaPuzzle);
+
+        System.out.println("\nQuantidade de eventos encontrados: " + eventos.size());
+
+        for (EventoPuzzle e : eventos) {
+            System.out.println("Evento ID: " + e.getIdEvento());
+            System.out.println("Tipo: " + e.getTipoEvento());
+            System.out.println("Valor: " + e.getValor());
+            System.out.println("----------------------------");
         }
     }
 }

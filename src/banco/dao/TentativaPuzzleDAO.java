@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import banco.Conexao;
 import banco.TentativaPuzzle;
@@ -14,7 +16,7 @@ public class TentativaPuzzleDAO {
 
     // Cadastra uma tentativa de puzzle
     public int criarTentativa(int idTentativaFase, int idTipoPuzzle,
-            int idPeca, int ordem, Integer semente,
+            int idPeca, int ordem, Long semente,
             Integer versaoConteudo, String conteudo) {
 
         String sql = "INSERT INTO tentativa_puzzle "
@@ -23,28 +25,28 @@ public class TentativaPuzzleDAO {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conexao = Conexao.conectar();
-             PreparedStatement stmt = conexao.prepareStatement(
+             PreparedStatement comando = conexao.prepareStatement(
                      sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setInt(1, idTentativaFase);
-            stmt.setInt(2, idTipoPuzzle);
-            stmt.setInt(3, idPeca);
-            stmt.setInt(4, ordem);
-            stmt.setObject(5, semente);
-            stmt.setObject(6, versaoConteudo);
-            stmt.setString(7, conteudo);
+            comando.setInt(1, idTentativaFase);
+            comando.setInt(2, idTipoPuzzle);
+            comando.setInt(3, idPeca);
+            comando.setInt(4, ordem);
+            comando.setObject(5, semente);
+            comando.setObject(6, versaoConteudo);
+            comando.setString(7, conteudo);
 
-            stmt.executeUpdate();
+            comando.executeUpdate();
 
-            try (ResultSet resultado = stmt.getGeneratedKeys()) {
+            try (ResultSet resultado = comando.getGeneratedKeys()) {
                 if (resultado.next()) {
                     return resultado.getInt(1);
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException erro) {
             System.out.println("Erro ao cadastrar tentativa de puzzle: "
-                    + e.getMessage());
+                    + erro.getMessage());
         }
 
         return -1;
@@ -57,34 +59,72 @@ public class TentativaPuzzleDAO {
                 + "WHERE id_tentativa_puzzle = ?";
 
         try (Connection conexao = Conexao.conectar();
-             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            stmt.setInt(1, idTentativaPuzzle);
+            comando.setInt(1, idTentativaPuzzle);
 
-            try (ResultSet resultado = stmt.executeQuery()) {
-
+            try (ResultSet resultado = comando.executeQuery()) {
                 if (resultado.next()) {
-
-                    return new TentativaPuzzle(
-                            resultado.getInt("id_tentativa_puzzle"),
-                            resultado.getInt("id_tentativa_fase"),
-                            resultado.getInt("id_tipo_puzzle"),
-                            resultado.getInt("id_peca"),
-                            resultado.getInt("ordem"),
-                            (Integer) resultado.getObject("semente"),
-                            (Integer) resultado.getObject("versao_conteudo"),
-                            resultado.getString("status"),
-                            resultado.getString("conteudo")
-                    );
+                    return criarObjetoTentativa(resultado);
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException erro) {
             System.out.println("Erro ao buscar tentativa de puzzle: "
-                    + e.getMessage());
+                    + erro.getMessage());
         }
 
         return null;
+    }
+
+    // Lista os puzzles de uma tentativa de fase
+    public List<TentativaPuzzle> listarPuzzlesPorTentativaFase(
+            int idTentativaFase) {
+
+        List<TentativaPuzzle> puzzles = new ArrayList<>();
+
+        String sql = "SELECT * FROM tentativa_puzzle "
+                + "WHERE id_tentativa_fase = ? ORDER BY ordem";
+
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+
+            comando.setInt(1, idTentativaFase);
+
+            try (ResultSet resultado = comando.executeQuery()) {
+                while (resultado.next()) {
+                    puzzles.add(criarObjetoTentativa(resultado));
+                }
+            }
+
+        } catch (SQLException erro) {
+            System.out.println("Erro ao listar puzzles: "
+                    + erro.getMessage());
+        }
+
+        return puzzles;
+    }
+
+    // Atualiza o conteúdo de um puzzle
+    public boolean atualizarConteudo(int idTentativaPuzzle, String novoConteudo) {
+
+        String sql = "UPDATE tentativa_puzzle "
+                + "SET conteudo = ? WHERE id_tentativa_puzzle = ?";
+
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+
+            comando.setString(1, novoConteudo);
+            comando.setInt(2, idTentativaPuzzle);
+
+            return comando.executeUpdate() > 0;
+
+        } catch (SQLException erro) {
+            System.out.println("Erro ao atualizar conteúdo do puzzle: "
+                    + erro.getMessage());
+        }
+
+        return false;
     }
 
     // Atualiza o status de uma tentativa de puzzle
@@ -94,19 +134,35 @@ public class TentativaPuzzleDAO {
                 + "SET status = ? WHERE id_tentativa_puzzle = ?";
 
         try (Connection conexao = Conexao.conectar();
-             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            stmt.setString(1, novoStatus);
-            stmt.setInt(2, idTentativaPuzzle);
+            comando.setString(1, novoStatus);
+            comando.setInt(2, idTentativaPuzzle);
 
-            int linhasAfetadas = stmt.executeUpdate();
+            return comando.executeUpdate() > 0;
 
-            return linhasAfetadas > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Erro ao atualizar status: " + e.getMessage());
+        } catch (SQLException erro) {
+            System.out.println("Erro ao atualizar status: "
+                    + erro.getMessage());
         }
 
         return false;
+    }
+
+    // Converte uma linha do banco em objeto TentativaPuzzle
+    private TentativaPuzzle criarObjetoTentativa(ResultSet resultado)
+            throws SQLException {
+
+        return new TentativaPuzzle(
+                resultado.getInt("id_tentativa_puzzle"),
+                resultado.getInt("id_tentativa_fase"),
+                resultado.getInt("id_tipo_puzzle"),
+                resultado.getInt("id_peca"),
+                resultado.getInt("ordem"),
+                resultado.getObject("semente", Long.class),
+                (Integer) resultado.getObject("versao_conteudo"),
+                resultado.getString("status"),
+                resultado.getString("conteudo")
+        );
     }
 }

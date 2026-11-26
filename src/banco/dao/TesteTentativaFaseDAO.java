@@ -7,40 +7,48 @@ public class TesteTentativaFaseDAO {
 
     public static void main(String[] args) {
 
-        // Cria o objeto responsável pelas operações
         TentativaFaseDAO tentativaDAO = new TentativaFaseDAO();
 
-        // Cadastra uma tentativa da fase 1 na partida de ID 2
-        int idGerado = tentativaDAO.criarTentativa(2, 1, 2);
+        // Busca a tentativa em andamento da fase 1
+        TentativaFase tentativaEmAndamento =
+                tentativaDAO.buscarTentativaEmAndamento(2, 1);
+
+        if (tentativaEmAndamento != null) {
+            System.out.println("Ja existe uma tentativa em andamento.");
+            System.out.println("ID: " + tentativaEmAndamento.getIdTentativaFase());
+            System.out.println("Numero: " + tentativaEmAndamento.getNumeroTentativa());
+            System.out.println("Status: " + tentativaEmAndamento.getStatus());
+            return;
+        }
+
+        // Consulta as tentativas existentes antes de cadastrar outra
+        int numeroTentativa = 3;
+
+        int idGerado = tentativaDAO.criarTentativa(2, 1, numeroTentativa);
 
         if (idGerado != -1) {
 
             System.out.println("Tentativa cadastrada com sucesso!");
             System.out.println("ID da tentativa: " + idGerado);
 
-            // Busca a tentativa cadastrada
             TentativaFase tentativa =
                     tentativaDAO.buscarTentativaPorId(idGerado);
 
             if (tentativa != null) {
-
                 System.out.println("\nDados da tentativa:");
                 System.out.println("ID: " + tentativa.getIdTentativaFase());
                 System.out.println("Partida: " + tentativa.getIdPartida());
                 System.out.println("Fase: " + tentativa.getIdFase());
-                System.out.println("Numero da tentativa: "
-                        + tentativa.getNumeroTentativa());
+                System.out.println("Numero da tentativa: " + tentativa.getNumeroTentativa());
                 System.out.println("Status: " + tentativa.getStatus());
-                System.out.println("Oxigenio inicial: "
-                        + tentativa.getOxigenioInicial());
+                System.out.println("Oxigenio inicial: " + tentativa.getOxigenioInicial());
                 System.out.println("Iniciada em: " + tentativa.getIniciadaEm());
                 System.out.println("Finalizada em: " + tentativa.getFinalizadaEm());
-
             }
 
             // Finaliza a tentativa cadastrada
             boolean finalizada =
-                    tentativaDAO.finalizarTentativa(idGerado);
+                    tentativaDAO.finalizarTentativa(idGerado, "concluida");
 
             if (finalizada) {
                 System.out.println("\nTentativa finalizada com sucesso!");
@@ -48,17 +56,14 @@ public class TesteTentativaFaseDAO {
                 System.out.println("\nNao foi possivel finalizar a tentativa.");
             }
 
-            // Busca novamente para conferir a alteracao
+            // Confere a alteração
             TentativaFase tentativaFinalizada =
                     tentativaDAO.buscarTentativaPorId(idGerado);
 
             if (tentativaFinalizada != null) {
-
                 System.out.println("\nDados apos a finalizacao:");
-                System.out.println("Status final: "
-                        + tentativaFinalizada.getStatus());
-                System.out.println("Finalizada em: "
-                        + tentativaFinalizada.getFinalizadaEm());
+                System.out.println("Status final: " + tentativaFinalizada.getStatus());
+                System.out.println("Finalizada em: " + tentativaFinalizada.getFinalizadaEm());
             }
 
         } else {

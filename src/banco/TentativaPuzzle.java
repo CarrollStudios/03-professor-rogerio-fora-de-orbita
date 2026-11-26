@@ -1,3 +1,4 @@
+
 package banco;
 
 public class TentativaPuzzle {
@@ -8,14 +9,14 @@ public class TentativaPuzzle {
     private int idTipoPuzzle;
     private int idPeca;
     private int ordem;
-    private Integer semente;
+    private Long semente;
     private Integer versaoConteudo;
     private String status;
     private String conteudo;
 
     // Construtor
     public TentativaPuzzle(int idTentativaPuzzle, int idTentativaFase,
-            int idTipoPuzzle, int idPeca, int ordem, Integer semente,
+            int idTipoPuzzle, int idPeca, int ordem, Long semente,
             Integer versaoConteudo, String status, String conteudo) {
 
         this.idTentativaPuzzle = idTentativaPuzzle;
@@ -35,7 +36,7 @@ public class TentativaPuzzle {
     public int getIdTipoPuzzle() { return idTipoPuzzle; }
     public int getIdPeca() { return idPeca; }
     public int getOrdem() { return ordem; }
-    public Integer getSemente() { return semente; }
+    public Long getSemente() { return semente; }
     public Integer getVersaoConteudo() { return versaoConteudo; }
     public String getStatus() { return status; }
     public String getConteudo() { return conteudo; }

@@ -1,21 +1,43 @@
+
 package banco;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 public class Conexao {
 
-    // Dados do banco de dados
-    private static final String URL = "jdbc:mysql://localhost:3306/professor_rogerio";
-    private static final String USUARIO = "jogo_app";
-    private static final String SENHA = "roger4@3";
-
-    // Realiza a conexão com o banco
     public static Connection conectar() {
 
+        Properties propriedades = new Properties();
+
+        try (FileInputStream arquivo =
+                new FileInputStream("config.properties")) {
+
+            propriedades.load(arquivo);
+
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar as configuracoes: "
+                    + e.getMessage());
+            return null;
+        }
+
+        String url = propriedades.getProperty("URL");
+        String usuario = propriedades.getProperty("USUARIO");
+        String senha = propriedades.getProperty("SENHA");
+
+        if (url == null || usuario == null || senha == null) {
+            System.out.println("Configuracoes do banco incompletas.");
+            return null;
+        }
+
         try {
-            Connection conexao = DriverManager.getConnection(URL, USUARIO, SENHA);
+
+            Connection conexao =
+                    DriverManager.getConnection(url, usuario, senha);
 
             System.out.println("Conexao realizada com sucesso!");
 

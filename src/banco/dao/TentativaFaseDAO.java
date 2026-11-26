@@ -30,7 +30,6 @@ public class TentativaFaseDAO {
             comando.executeUpdate();
 
             try (ResultSet resultado = comando.getGeneratedKeys()) {
-
                 if (resultado.next()) {
                     return resultado.getInt(1);
                 }
@@ -58,7 +57,6 @@ public class TentativaFaseDAO {
             try (ResultSet resultado = comando.executeQuery()) {
 
                 if (resultado.next()) {
-
                     return new TentativaFase(
                             resultado.getInt("id_tentativa_fase"),
                             resultado.getInt("id_partida"),
@@ -80,22 +78,64 @@ public class TentativaFaseDAO {
         return null;
     }
 
-    // Finaliza uma tentativa de fase
-    public boolean finalizarTentativa(int idTentativaFase) {
+    // Busca uma tentativa de fase em andamento
+    public TentativaFase buscarTentativaEmAndamento(int idPartida, int idFase) {
 
-        String sql = "UPDATE tentativa_fase "
-                + "SET status = ?, finalizada_em = CURRENT_TIMESTAMP "
-                + "WHERE id_tentativa_fase = ?";
+        String sql = "SELECT * FROM tentativa_fase "
+                + "WHERE id_partida = ? AND id_fase = ? "
+                + "AND status = 'em_andamento' "
+                + "ORDER BY numero_tentativa DESC LIMIT 1";
 
         try (Connection conexao = Conexao.conectar();
              PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            comando.setString(1, "concluida");
+            comando.setInt(1, idPartida);
+            comando.setInt(2, idFase);
+
+            try (ResultSet resultado = comando.executeQuery()) {
+
+                if (resultado.next()) {
+                    return new TentativaFase(
+                            resultado.getInt("id_tentativa_fase"),
+                            resultado.getInt("id_partida"),
+                            resultado.getInt("id_fase"),
+                            resultado.getInt("numero_tentativa"),
+                            resultado.getString("status"),
+                            resultado.getInt("oxigenio_inicial"),
+                            resultado.getTimestamp("iniciada_em"),
+                            resultado.getTimestamp("finalizada_em")
+                    );
+                }
+            }
+
+        } catch (SQLException erro) {
+            System.out.println("Erro ao buscar tentativa em andamento: "
+                    + erro.getMessage());
+        }
+
+        return null;
+    }
+
+    // Finaliza uma tentativa com o status informado
+    public boolean finalizarTentativa(int idTentativaFase, String status) {
+
+        if (!"concluida".equals(status) && !"game_over".equals(status)) {
+            System.out.println("Status de finalizacao invalido.");
+            return false;
+        }
+
+        String sql = "UPDATE tentativa_fase "
+                + "SET status = ?, finalizada_em = CURRENT_TIMESTAMP "
+                + "WHERE id_tentativa_fase = ? "
+                + "AND status = 'em_andamento'";
+
+        try (Connection conexao = Conexao.conectar();
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+
+            comando.setString(1, status);
             comando.setInt(2, idTentativaFase);
 
-            int linhasAfetadas = comando.executeUpdate();
-
-            return linhasAfetadas > 0;
+            return comando.executeUpdate() > 0;
 
         } catch (SQLException erro) {
             System.out.println("Erro ao finalizar tentativa: "
